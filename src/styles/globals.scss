@@ -1,0 +1,52 @@
+@use "./app";
+
+// Bootstrap 5 is loaded as compiled CSS (see layout.tsx) and themed below with its CSS variables.
+// Compiling Bootstrap's SCSS sources is avoided because Turbopack cannot resolve their partial imports.
+
+:root {
+  --bs-primary: #3d5af1;
+  --bs-primary-rgb: 61, 90, 241;
+  --bs-primary-text-emphasis: #1c2d8a;
+  --bs-primary-bg-subtle: #e7ebfe;
+  --bs-primary-border-subtle: #c3cdfb;
+  --bs-body-bg: #f5f6f9;
+  --bs-body-color: #1d2433;
+  --bs-border-color: #e2e5ec;
+  --bs-border-radius: 0.5rem;
+  --bs-link-color: #2540d8;
+  --bs-link-color-rgb: 37, 64, 216;
+  --bs-link-hover-color: #1a2fa8;
+  --bs-link-decoration: none;
+  --bs-body-font-size: 0.9375rem;
+  --bs-heading-color: #1d2433;
+}
+
+.btn-primary {
+  --bs-btn-bg: #3d5af1;
+  --bs-btn-border-color: #3d5af1;
+  --bs-btn-hover-bg: #2f49d6;
+  --bs-btn-hover-border-color: #2f49d6;
+  --bs-btn-active-bg: #2840c0;
+  --bs-btn-active-border-color: #2840c0;
+  --bs-btn-disabled-bg: #3d5af1;
+  --bs-btn-disabled-border-color: #3d5af1;
+}
+.btn-outline-primary {
+  --bs-btn-color: #2540d8;
+  --bs-btn-border-color: #3d5af1;
+  --bs-btn-hover-bg: #3d5af1;
+  --bs-btn-hover-border-color: #3d5af1;
+  --bs-btn-active-bg: #3d5af1;
+  --bs-btn-active-border-color: #3d5af1;
+}
+.text-bg-primary { background-color: #3d5af1 !important; }
+.text-primary { color: #2540d8 !important; }
+.bg-primary-subtle { background-color: #e7ebfe !important; }
+.form-control:focus, .form-select:focus {
+  border-color: #8a9bf7;
+  box-shadow: 0 0 0 0.2rem rgba(61, 90, 241, 0.2);
+}
+h1, h2, h3, h4, h5, h6 { font-weight: 600; }
+a { text-decoration: none; }
+dt { font-size: 0.78rem; color: #5f6879; font-weight: 500; }
+dd { margin-bottom: 0.75rem; }
