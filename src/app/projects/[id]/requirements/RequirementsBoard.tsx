@@ -4,6 +4,7 @@ import { useState } from "react";
 import { addRequirement, answerQuestion, clearAnswer, mergeAnalysis, removeRequirement, removeTarget, setAssumptionStatus, unansweredQuestions, updateRequirement, upsertTarget, type RequirementKind } from "@/domain/requirements";
 import { updateProjectInfo } from "@/domain/project";
 import type { Priority, Requirement, RequirementsAnalysis } from "@/domain/types";
+import { AiNotice } from "@/components/ui/AiNotice";
 import { Field, FormError, SelectField } from "@/components/ui/Fields";
 import { Modal } from "@/components/ui/Modal";
 import { ProvenanceBadge } from "@/components/ui/ProvenanceBadge";
@@ -90,7 +91,7 @@ function RequirementList({ title, kind }: { title: string; kind: RequirementKind
 // AI analysis review ----------------------------------------------------
 
 function AnalysisReview({ analysis, onClose }: { analysis: RequirementsAnalysis; onClose: () => void }) {
-  const { run, ai } = useProject();
+  const { run } = useProject();
   const groups = [
     { key: "functional", label: "Functional requirements", items: analysis.functional.map((x) => x.text), prov: "user" as const },
     { key: "nonFunctional", label: "Non-functional requirements", items: analysis.nonFunctional.map((x) => `${x.text} (${x.category})`), prov: "user" as const },
@@ -127,12 +128,8 @@ function AnalysisReview({ analysis, onClose }: { analysis: RequirementsAnalysis;
 
   return (
     <Modal title="Review extracted requirements" onClose={onClose} size="lg">
-      {ai.isMock && (
-        <div className="alert alert-warning py-2 fs-xs" role="note">
-          <i className="bi bi-robot me-1" aria-hidden="true" />
-          Extracted by the <strong>mock</strong> AI using keyword rules. Check every item: nothing is added to your project until you accept it.
-        </div>
-      )}
+      <AiNotice what="extraction" />
+      <p className="fs-xs text-muted-ar">Check every item: nothing is added to your project until you accept it.</p>
       {total === 0 && analysis.functional.length + analysis.nonFunctional.length + analysis.targets.length + analysis.assumptions.length + analysis.questions.length === 0 && (
         <p className="text-muted-ar">Nothing could be extracted. Try describing what users can do and any quality goals in full sentences.</p>
       )}

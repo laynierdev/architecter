@@ -35,6 +35,7 @@ export type AdrDraft = z.infer<typeof S.AdrDraftSchema>;
 export type RiskDraft = z.infer<typeof S.RiskDraftSchema>;
 export type ImpactReport = z.infer<typeof S.ImpactReportSchema>;
 export type AdvisorAnswer = z.infer<typeof S.AdvisorAnswerSchema>;
+export type AlternativeDraft = z.infer<typeof S.AlternativeDraftSchema>;
 
 /** The part of a project that snapshots capture and proposals modify. */
 export type ArchitectureState = Pick<Project, "components" | "relationships" | "flows">;

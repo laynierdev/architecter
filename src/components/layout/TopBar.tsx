@@ -12,9 +12,9 @@ export function TopBar() {
         </span>
       </Link>
       <div className="ms-auto d-flex align-items-center gap-2">
-        <span className="badge text-bg-light border fw-normal" title="Stage 1 uses mock data only">
+        <span className="badge text-bg-light border fw-normal" title="Projects are kept in memory until persistence is added">
           <i className="bi bi-flask me-1" aria-hidden="true" />
-          Prototype · mock data
+          Preview build
         </span>
         <Link href="/projects/new" className="btn btn-primary btn-sm">
           <i className="bi bi-plus-lg me-1" aria-hidden="true" />
