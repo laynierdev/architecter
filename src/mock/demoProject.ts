@@ -262,6 +262,7 @@ const relationships: Relationship[] = [
 ];
 
 export const demoProject: Project = {
+  schemaVersion: 1,
   id: "demo",
   name: "QuickBite Delivery",
   tagline: "Regional food-delivery platform",
@@ -292,9 +293,9 @@ export const demoProject: Project = {
     { id: "t5", label: "Monthly infrastructure budget", value: "Not provided", provenance: "question" },
   ],
   assumptions: [
-    { id: "as1", text: "A hosted payment provider is used; the platform never stores card numbers.", provenance: "assumption", priority: "must" },
-    { id: "as2", text: "Launch region is a single country, so one cloud region is enough initially.", provenance: "assumption", priority: "should" },
-    { id: "as3", text: "Peak load is roughly 10× the daily average during lunch and dinner.", provenance: "assumption", priority: "should" },
+    { id: "as1", text: "A hosted payment provider is used; the platform never stores card numbers.", priority: "must", status: "proposed" },
+    { id: "as2", text: "Launch region is a single country, so one cloud region is enough initially.", priority: "should", status: "proposed" },
+    { id: "as3", text: "Peak load is roughly 10× the daily average during lunch and dinner.", priority: "should", status: "proposed" },
   ],
   openQuestions: [
     { id: "q1", question: "What is the monthly infrastructure budget?", why: "Determines managed vs. self-hosted choices and multi-region redundancy." },
@@ -454,36 +455,7 @@ export const demoProject: Project = {
       isCurrent: false,
     },
   ],
-  advisorScript: [
-    {
-      question: "Why was RabbitMQ selected instead of Kafka?",
-      answer:
-        "At the assumed volume (tens of orders per second) RabbitMQ is enough: it provides durable queues, routing and dead-letter handling with much less operational weight than Kafka. Kafka would make sense if you needed long-term event replay or analytics streams. This is captured in ADR-001. Trade-off: you give up easy replay of historical events.",
-    },
-    {
-      question: "What happens if the Payment Service fails?",
-      answer:
-        "The Order Service cannot authorize payments, so new checkouts are rejected with a clear message while existing orders are unaffected. Idempotency keys make retries safe, so a customer retrying never gets charged twice. Risk R1 tracks the provider-side version of this failure.",
-    },
-    {
-      question: "How would the system handle ten times the traffic?",
-      answer:
-        "Reads scale first: stateless services scale horizontally and Redis absorbs most menu traffic. The first real limit is the Orders DB write path (risk R2), so you would add read replicas, tune indexes and consider partitioning by date. Position updates already bypass SQL. Load tests should confirm this before you rely on it.",
-    },
-    {
-      question: "Could this be implemented as a modular monolith?",
-      answer:
-        "Yes, and for a small team it may be the better first release. You would merge Catalog, Orders, Payments and Auth into one deployable with clear module boundaries and keep the broker only if you need asynchronous work. Open the Compare tab to see the trade-offs and a hybrid option.",
-    },
-    {
-      question: "What are the main security implications?",
-      answer:
-        "Token validation at the gateway, role checks per service, and keeping card data entirely inside the payment provider reduce exposure. Still open: rate limiting policy, secrets management, audit logging and a formal threat model (Security scores 3/5 for that reason).",
-    },
-  ],
-  updatedAt: "2026-11-04",
+  snapshots: [],
+  createdAt: "2026-11-04T09:00:00.000Z",
+  updatedAt: "2026-11-04T09:00:00.000Z",
 };
-
-export function getProject(id: string): Project | undefined {
-  return id === demoProject.id ? demoProject : undefined;
-}

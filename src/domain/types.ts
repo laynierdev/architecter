@@ -1,164 +1,42 @@
-/**
- * Stage 1 domain types (plain TypeScript, mock data only).
- * Stage 2 replaces these with Zod schemas and inferred types.
- */
+import type { z } from "zod";
+import type * as S from "./schemas";
 
-/** Where a piece of information comes from. Never silently invent requirements. */
-export type Provenance = "user" | "assumption" | "recommendation" | "question";
+/** All domain types are inferred from the Zod schemas: one source of truth. */
+export type Provenance = z.infer<typeof S.ProvenanceSchema>;
+export type ComponentKind = z.infer<typeof S.ComponentKindSchema>;
+export type Priority = z.infer<typeof S.PrioritySchema>;
+export type Level = z.infer<typeof S.LevelSchema>;
+export type AdrStatus = z.infer<typeof S.AdrStatusSchema>;
+export type CriterionId = z.infer<typeof S.CriterionIdSchema>;
+export type AssumptionStatus = z.infer<typeof S.AssumptionStatusSchema>;
 
-export type ComponentKind =
-  | "client"
-  | "gateway"
-  | "service"
-  | "database"
-  | "cache"
-  | "queue"
-  | "external";
+export type Requirement = z.infer<typeof S.RequirementSchema>;
+export type Assumption = z.infer<typeof S.AssumptionSchema>;
+export type TargetMetric = z.infer<typeof S.TargetMetricSchema>;
+export type OpenQuestion = z.infer<typeof S.OpenQuestionSchema>;
 
-export interface ArchComponent {
-  id: string;
-  name: string;
-  kind: ComponentKind;
-  /** Logical boundary / layer the component belongs to. */
-  layer: string;
-  technology: string;
-  description: string;
-  responsibilities: string[];
-  provenance: Provenance;
-  /** Why this component / technology was chosen. */
-  rationale: string;
-  /** What happens when this component fails and how the design mitigates it. */
-  failureMode: string;
-  /** How the component scales. */
-  scaling: string;
-}
+export type ArchComponent = z.infer<typeof S.ArchComponentSchema>;
+export type Relationship = z.infer<typeof S.RelationshipSchema>;
+export type FlowStep = z.infer<typeof S.FlowStepSchema>;
+export type FlowScenario = z.infer<typeof S.FlowScenarioSchema>;
 
-export interface Relationship {
-  id: string;
-  source: string;
-  target: string;
-  protocol: string;
-  label: string;
-  /** Asynchronous (event / message based) communication. */
-  async: boolean;
-}
+export type Adr = z.infer<typeof S.AdrSchema>;
+export type Risk = z.infer<typeof S.RiskSchema>;
+export type QualityAttribute = z.infer<typeof S.QualityAttributeSchema>;
+export type Alternative = z.infer<typeof S.AlternativeSchema>;
 
-export interface FlowStep {
-  /** Edges that "fire" together in this step. */
-  edgeIds: string[];
-  caption: string;
-}
+export type Snapshot = z.infer<typeof S.SnapshotSchema>;
+export type Project = z.infer<typeof S.ProjectSchema>;
 
-export interface FlowScenario {
-  id: string;
-  name: string;
-  description: string;
-  steps: FlowStep[];
-}
+export type RequirementsAnalysis = z.infer<typeof S.RequirementsAnalysisSchema>;
+export type ChangeOperation = z.infer<typeof S.ChangeOperationSchema>;
+export type ChangeProposal = z.infer<typeof S.ChangeProposalSchema>;
+export type AdrDraft = z.infer<typeof S.AdrDraftSchema>;
+export type RiskDraft = z.infer<typeof S.RiskDraftSchema>;
+export type ImpactReport = z.infer<typeof S.ImpactReportSchema>;
+export type AdvisorAnswer = z.infer<typeof S.AdvisorAnswerSchema>;
 
-export type Priority = "must" | "should" | "could";
+/** The part of a project that snapshots capture and proposals modify. */
+export type ArchitectureState = Pick<Project, "components" | "relationships" | "flows">;
 
-export interface Requirement {
-  id: string;
-  text: string;
-  provenance: Provenance;
-  priority: Priority;
-  category?: string;
-}
-
-export interface TargetMetric {
-  id: string;
-  label: string;
-  value: string;
-  provenance: Provenance;
-}
-
-export interface OpenQuestion {
-  id: string;
-  question: string;
-  why: string;
-}
-
-export type AdrStatus = "proposed" | "accepted" | "superseded" | "deprecated";
-
-export interface Adr {
-  id: string;
-  number: number;
-  title: string;
-  status: AdrStatus;
-  context: string;
-  problem: string;
-  decision: string;
-  alternatives: { name: string; reason: string }[];
-  consequences: { positive: string[]; negative: string[] };
-}
-
-export type Level = "low" | "medium" | "high";
-
-export interface Risk {
-  id: string;
-  title: string;
-  description: string;
-  likelihood: Level;
-  impact: Level;
-  mitigation: string;
-  relatedComponentIds: string[];
-}
-
-export interface QualityAttribute {
-  id: string;
-  name: string;
-  /** 1 (weak) to 5 (strong) */
-  score: number;
-  note: string;
-}
-
-export type CriterionId =
-  | "complexity"
-  | "scalability"
-  | "reliability"
-  | "operations"
-  | "cost"
-  | "fit";
-
-export interface Alternative {
-  id: string;
-  name: string;
-  summary: string;
-  /** 1 (poor) to 5 (excellent). For complexity/operations/cost, 5 means "low burden". */
-  ratings: Record<CriterionId, number>;
-  pros: string[];
-  cons: string[];
-  costEstimate: string;
-  costAssumptions: string;
-  fitVerdict: string;
-  isCurrent: boolean;
-}
-
-export interface AdvisorExchange {
-  question: string;
-  answer: string;
-}
-
-export interface Project {
-  id: string;
-  name: string;
-  tagline: string;
-  description: string;
-  architectureStyle: string;
-  styleJustification: string;
-  functionalRequirements: Requirement[];
-  nonFunctionalRequirements: Requirement[];
-  targets: TargetMetric[];
-  assumptions: Requirement[];
-  openQuestions: OpenQuestion[];
-  components: ArchComponent[];
-  relationships: Relationship[];
-  flows: FlowScenario[];
-  adrs: Adr[];
-  risks: Risk[];
-  qualityAttributes: QualityAttribute[];
-  alternatives: Alternative[];
-  advisorScript: AdvisorExchange[];
-  updatedAt: string;
-}
+export type CriterionWeights = Record<CriterionId, number>;
