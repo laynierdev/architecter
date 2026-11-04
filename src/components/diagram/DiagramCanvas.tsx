@@ -1,10 +1,10 @@
 "use client";
 
 import { useMemo } from "react";
-import { Background, Controls, MarkerType, MiniMap, ReactFlow, type Edge } from "@xyflow/react";
+import { Background, Controls, MarkerType, MiniMap, Position, ReactFlow, type Edge } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import type { ArchComponent, Relationship } from "@/domain/types";
-import { computeLayout } from "@/services/diagramLayout";
+import { computeLayout, NODE_HEIGHT, NODE_WIDTH } from "@/services/diagramLayout";
 import { ArchEdge, type ArchEdgeType } from "./ArchEdge";
 import { ArchNode, type ArchNodeType } from "./ArchNode";
 
@@ -43,8 +43,13 @@ export function DiagramCanvas({ components, relationships, selection, onSelect, 
     id: component.id,
     type: "arch",
     position: positions[component.id] ?? { x: 0, y: 0 },
-    width: 190,
-    height: 64,
+    width: NODE_WIDTH,
+    height: NODE_HEIGHT,
+    // Declaring handles up front lets edges render without waiting for DOM measurement (also needed for SSR).
+    handles: [
+      { type: "target", position: Position.Left, x: 0, y: NODE_HEIGHT / 2, width: 1, height: 1 },
+      { type: "source", position: Position.Right, x: NODE_WIDTH, y: NODE_HEIGHT / 2, width: 1, height: 1 },
+    ],
     draggable: false,
     data: {
       component,

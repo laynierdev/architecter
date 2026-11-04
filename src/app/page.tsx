@@ -1,52 +1,23 @@
 import Link from "next/link";
-import { demoProject as p } from "@/mock/demoProject";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { Stage1Notice } from "@/components/ui/Stage1Notice";
+import { ProjectList } from "./ProjectList";
 
 export default function DashboardPage() {
-  const open = p.openQuestions.length;
-  const assumptions = p.assumptions.length;
-
   return (
     <main id="main-content" className="ar-main container-xl">
-      <PageHeader title="Projects" description="Design systems from requirements, explore trade-offs and keep decisions documented." actions={
-        <Link href="/projects/new" className="btn btn-primary">
-          <i className="bi bi-plus-lg me-1" aria-hidden="true" />
-          New project
-        </Link>
-      } />
-
-      <div className="row g-3">
-        <div className="col-12 col-md-6 col-xl-4">
-          <Link href={`/projects/${p.id}`} className="ar-card ar-card-link d-block h-100 text-reset">
-            <div className="ar-card-body">
-              <div className="d-flex justify-content-between align-items-start mb-2">
-                <span className="badge text-bg-primary">Demo project</span>
-                <span className="fs-xs text-muted-ar">Updated {p.updatedAt}</span>
-              </div>
-              <h2 className="h5 mb-1">{p.name}</h2>
-              <p className="text-muted-ar fs-xs mb-3">{p.tagline}</p>
-              <p className="mb-3">{p.description}</p>
-              <div className="d-flex flex-wrap gap-2 fs-xs">
-                <span className="badge text-bg-light border">{p.components.length} components</span>
-                <span className="badge text-bg-light border">{p.adrs.length} ADRs</span>
-                <span className="badge text-bg-light border">{p.risks.length} risks</span>
-                <span className="prov-badge prov-question">{open} open questions</span>
-                <span className="prov-badge prov-assumption">{assumptions} assumptions</span>
-              </div>
-            </div>
+      <PageHeader
+        title="Projects"
+        description="Design systems from requirements, explore trade-offs and keep decisions documented."
+        actions={
+          <Link href="/projects/new" className="btn btn-primary">
+            <i className="bi bi-plus-lg me-1" aria-hidden="true" />New project
           </Link>
-        </div>
+        }
+      />
+      <Stage1Notice>Projects live in memory in this stage: they persist while you navigate but are reset when the page is reloaded. Saving arrives in Stage 4.</Stage1Notice>
 
-        <div className="col-12 col-md-6 col-xl-4">
-          <Link href="/projects/new" className="ar-card ar-card-link d-flex h-100 text-reset align-items-center justify-content-center text-center" style={{ borderStyle: "dashed", minHeight: 200 }}>
-            <div className="ar-card-body">
-              <i className="bi bi-plus-circle fs-1 text-muted-ar" aria-hidden="true" />
-              <p className="fw-semibold mb-1 mt-2">Start a new project</p>
-              <p className="fs-xs text-muted-ar mb-0">Describe your product and requirements.</p>
-            </div>
-          </Link>
-        </div>
-      </div>
+      <ProjectList />
 
       <section className="mt-5" aria-labelledby="how-heading">
         <h2 id="how-heading" className="h5 mb-3">How Architecter works</h2>

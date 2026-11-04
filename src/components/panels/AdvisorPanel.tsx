@@ -1,63 +1,79 @@
 "use client";
 
-import { useRef, useState } from "react";
-import type { Project } from "@/domain/types";
+import { useEffect, useRef, useState } from "react";
+import { suggestedQuestions } from "@/ai";
+import { useAction } from "@/components/ui/useAction";
+import { useProject } from "@/state/ProjectContext";
 
 interface Message {
   role: "user" | "advisor";
   text: string;
+  references?: string[];
 }
 
-const FALLBACK =
-  "I can only answer the suggested questions in this prototype. Free-form questions about your architecture will be answered by the AI provider in Stage 3.";
-
-export function AdvisorPanel({ project }: { project: Project }) {
+export function AdvisorPanel({ focusComponentId }: { focusComponentId?: string }) {
+  const { project, ai } = useProject();
   const [messages, setMessages] = useState<Message[]>([]);
   const [draft, setDraft] = useState("");
+  const { busy, error, run } = useAction();
   const endRef = useRef<HTMLDivElement>(null);
+  const questions = suggestedQuestions(project);
 
-  const ask = (question: string) => {
-    const scripted = project.advisorScript.find((s) => s.question.toLowerCase() === question.trim().toLowerCase());
-    setMessages((m) => [...m, { role: "user", text: question }, { role: "advisor", text: scripted?.answer ?? FALLBACK }]);
+  useEffect(() => {
+    endRef.current?.scrollIntoView?.({ behavior: "smooth", block: "end" });
+  }, [messages.length]);
+
+  const ask = async (question: string) => {
+    const q = question.trim();
+    if (!q || busy) return;
+    setMessages((m) => [...m, { role: "user", text: q }]);
     setDraft("");
-    setTimeout(() => endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" }), 50);
+    const answer = await run(() => ai.askAdvisor(project, q, focusComponentId));
+    if (answer) setMessages((m) => [...m, { role: "advisor", text: answer.answer, references: answer.references }]);
   };
 
   return (
     <div className="d-flex flex-column h-100">
-      <div className="alert alert-warning py-2 fs-xs d-flex gap-2" role="note">
-        <i className="bi bi-robot" aria-hidden="true" />
-        <div>
-          <strong>Mock advisor.</strong> Answers are pre-written for this demo project. Real AI answers arrive in Stage 3.
+      {ai.isMock && (
+        <div className="alert alert-warning py-2 fs-xs d-flex gap-2" role="note">
+          <i className="bi bi-robot" aria-hidden="true" />
+          <div>
+            <strong>Mock advisor.</strong> Answers are composed from your project data by fixed rules, not by a language model. Real AI arrives in Stage 3.
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="flex-grow-1" aria-live="polite">
         {messages.length === 0 && (
           <div className="mb-3">
             <p className="fw-semibold mb-2">Ask about this architecture</p>
-            <div className="d-grid gap-2">
-              {project.advisorScript.map((s) => (
-                <button key={s.question} type="button" className="btn btn-outline-primary btn-sm text-start" onClick={() => ask(s.question)}>
-                  {s.question}
-                </button>
-              ))}
-            </div>
+            {questions.length === 0 ? (
+              <p className="text-muted-ar fs-xs">Add components to the architecture to get suggested questions.</p>
+            ) : (
+              <div className="d-grid gap-2">
+                {questions.map((q) => (
+                  <button key={q} type="button" className="btn btn-outline-primary btn-sm text-start" onClick={() => ask(q)}>{q}</button>
+                ))}
+              </div>
+            )}
           </div>
         )}
         <div className="d-grid gap-2">
           {messages.map((m, i) => (
             <div key={i} className={`chat-bubble ${m.role}`}>
-              {m.text}
+              <div style={{ whiteSpace: "pre-line" }}>{m.text}</div>
+              {m.references && m.references.length > 0 && (
+                <div className="fs-xs mt-2 text-muted-ar">Based on: {m.references.join(", ")}</div>
+              )}
             </div>
           ))}
+          {busy && <div className="chat-bubble advisor text-muted-ar">Thinking…</div>}
         </div>
-        {messages.length > 0 && (
+        {error && <div className="alert alert-danger py-2 fs-xs mt-2" role="alert">{error}</div>}
+        {messages.length > 0 && questions.length > 0 && (
           <div className="d-flex flex-wrap gap-1 mt-3">
-            {project.advisorScript.map((s) => (
-              <button key={s.question} type="button" className="btn btn-sm btn-light border fs-xs" onClick={() => ask(s.question)}>
-                {s.question}
-              </button>
+            {questions.map((q) => (
+              <button key={q} type="button" className="btn btn-sm btn-light border fs-xs" onClick={() => ask(q)}>{q}</button>
             ))}
           </div>
         )}
@@ -68,14 +84,12 @@ export function AdvisorPanel({ project }: { project: Project }) {
         className="d-flex gap-2 mt-3"
         onSubmit={(e) => {
           e.preventDefault();
-          if (draft.trim()) ask(draft);
+          ask(draft);
         }}
       >
-        <label htmlFor="advisor-input" className="visually-hidden">
-          Ask the architecture advisor
-        </label>
+        <label htmlFor="advisor-input" className="visually-hidden">Ask the architecture advisor</label>
         <input id="advisor-input" className="form-control" placeholder="Ask a question…" value={draft} onChange={(e) => setDraft(e.target.value)} />
-        <button className="btn btn-primary" type="submit" disabled={!draft.trim()} aria-label="Send question">
+        <button className="btn btn-primary" type="submit" disabled={!draft.trim() || busy} aria-label="Send question">
           <i className="bi bi-send" aria-hidden="true" />
         </button>
       </form>

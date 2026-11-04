@@ -376,3 +376,28 @@ body {
     animation-duration: 0.01ms !important;
   }
 }
+
+// Dialogs -----------------------------------------------------------------
+.ar-dialog {
+  border: 0;
+  border-radius: 0.9rem;
+  padding: 0;
+  width: min(560px, 94vw);
+  max-height: 90vh;
+  box-shadow: 0 20px 60px rgba(20, 28, 50, 0.3);
+  color: var(--ar-ink);
+  &::backdrop { background: rgba(20, 28, 50, 0.45); }
+  &[open] { display: flex; flex-direction: column; }
+  &.ar-dialog-lg { width: min(860px, 96vw); }
+}
+.ar-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.9rem 1.1rem;
+  border-bottom: 1px solid var(--ar-border);
+}
+.ar-dialog-body { padding: 1.1rem; overflow-y: auto; }
+
+.toolbar-sep { width: 1px; align-self: stretch; background: var(--ar-border); }
+.hover-row:hover { background: #f6f7fb; }

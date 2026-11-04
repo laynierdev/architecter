@@ -2,67 +2,74 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { createProject } from "@/domain/project";
+import { Field, FormError } from "@/components/ui/Fields";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Stage1Notice } from "@/components/ui/Stage1Notice";
+import { projectRepository } from "@/state/store";
+
+const TARGETS = [
+  { id: "users", label: "Expected users", placeholder: "e.g. 100,000 monthly" },
+  { id: "availability", label: "Availability target", placeholder: "e.g. 99.9%" },
+  { id: "latency", label: "Latency target", placeholder: "e.g. p95 < 300 ms" },
+  { id: "budget", label: "Monthly budget", placeholder: "e.g. $2,000" },
+];
 
 export function NewProjectForm() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [touched, setTouched] = useState(false);
-
-  const nameError = touched && name.trim().length < 3 ? "Enter a project name of at least 3 characters." : null;
-  const descError = touched && description.trim().length < 20 ? "Describe the product in at least 20 characters so the analysis has something to work with." : null;
+  const [targets, setTargets] = useState<Record<string, string>>({});
+  const [error, setError] = useState<string | null>(null);
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    setTouched(true);
-    if (name.trim().length < 3 || description.trim().length < 20) return;
-    // Stage 1: no persistence yet, continue with the demo project.
-    router.push("/projects/demo/requirements?draft=1");
+    try {
+      const project = createProject({
+        name,
+        description,
+        targets: TARGETS.map((t) => ({ label: t.label, value: targets[t.id] ?? "" })),
+      });
+      projectRepository.save(project);
+      router.push(`/projects/${project.id}/requirements`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not create the project.");
+    }
   };
 
   return (
     <form onSubmit={submit} noValidate>
       <PageHeader title="New project" description="Describe what you want to build. You can refine everything later." />
-      <Stage1Notice>
-        Prototype: projects are not saved yet. Submitting opens the demo project so you can explore the full workflow. Saving arrives in Stage 4.
-      </Stage1Notice>
+      <Stage1Notice>The project is kept in memory until Stage 4 adds persistence: reloading the page removes it.</Stage1Notice>
+      <FormError message={error} />
 
       <div className="ar-card ar-card-body mb-3">
-        <div className="mb-3">
-          <label htmlFor="p-name" className="form-label fw-semibold">Project name</label>
-          <input id="p-name" className={`form-control ${nameError ? "is-invalid" : ""}`} value={name} onChange={(e) => setName(e.target.value)} aria-describedby="p-name-err" />
-          <div id="p-name-err" className="invalid-feedback">{nameError}</div>
-        </div>
-        <div className="mb-3">
-          <label htmlFor="p-desc" className="form-label fw-semibold">What are you building?</label>
-          <textarea id="p-desc" rows={5} className={`form-control ${descError ? "is-invalid" : ""}`} value={description} onChange={(e) => setDescription(e.target.value)} aria-describedby="p-desc-err p-desc-help" placeholder="Who are the users? What should the system do?" />
-          <div id="p-desc-help" className="form-text">Only state what you know. Missing details will be listed as open questions, not invented.</div>
-          <div id="p-desc-err" className="invalid-feedback">{descError}</div>
-        </div>
+        <Field label="Project name" value={name} onChange={setName} required />
+        <Field
+          label="What are you building?"
+          textarea
+          rows={5}
+          value={description}
+          onChange={setDescription}
+          placeholder="Who are the users? What should the system do?"
+          help="Only state what you know. You can analyze this text on the next screen; missing details become open questions, not inventions."
+        />
       </div>
 
       <div className="ar-card ar-card-body mb-4">
         <h2 className="h6">Known targets (optional)</h2>
-        <p className="fs-xs text-muted-ar">Leave blank anything you do not know yet.</p>
+        <p className="fs-xs text-muted-ar">Leave blank anything you do not know yet. Blank values are never filled in for you.</p>
         <div className="row g-3">
-          {[
-            ["t-users", "Expected users", "e.g. 100,000 monthly"],
-            ["t-avail", "Availability", "e.g. 99.9%"],
-            ["t-latency", "Latency", "e.g. p95 < 300 ms"],
-            ["t-budget", "Monthly budget", "e.g. $2,000"],
-          ].map(([id, label, ph]) => (
-            <div className="col-12 col-md-6" key={id}>
-              <label htmlFor={id} className="form-label">{label}</label>
-              <input id={id} className="form-control" placeholder={ph} />
+          {TARGETS.map((t) => (
+            <div className="col-12 col-md-6" key={t.id}>
+              <Field label={t.label} value={targets[t.id] ?? ""} onChange={(v) => setTargets((s) => ({ ...s, [t.id]: v }))} placeholder={t.placeholder} />
             </div>
           ))}
         </div>
       </div>
 
       <div className="d-flex gap-2">
-        <button type="submit" className="btn btn-primary">Continue to requirements</button>
+        <button type="submit" className="btn btn-primary">Create project</button>
         <button type="button" className="btn btn-outline-secondary" onClick={() => router.push("/")}>Cancel</button>
       </div>
     </form>
