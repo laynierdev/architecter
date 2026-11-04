@@ -1,7 +1,8 @@
 "use client";
 
-import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from "react";
-import { createAIProvider, type AIProvider } from "@/ai";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import { createAIProvider, type AIMode } from "@/ai";
+import type { ApiAIProvider } from "@/ai/clientProvider";
 import { validateProject } from "@/domain/project";
 import type { Project } from "@/domain/types";
 import { canRedo, canUndo, createHistory, push, redo, undo, type History } from "./history";
@@ -20,7 +21,9 @@ interface ProjectContextValue {
   redo: () => void;
   canUndo: boolean;
   canRedo: boolean;
-  ai: AIProvider;
+  ai: ApiAIProvider;
+  /** Which AI produced the latest answer (mock, fallback or Gemini). Updates after every AI call. */
+  aiMode: AIMode;
 }
 
 const Context = createContext<ProjectContextValue | null>(null);
@@ -30,6 +33,11 @@ export function ProjectProvider({ initial, children }: { initial: Project; child
   // The ref always holds the latest history so two quick operations never act on stale state.
   const latest = useRef(history);
   const ai = useMemo(() => createAIProvider(), []);
+  const aiMode = useSyncExternalStore(ai.subscribe, ai.getSnapshot, ai.getSnapshot);
+
+  useEffect(() => {
+    void ai.refreshStatus();
+  }, [ai]);
 
   const commit = useCallback((next: History<Project>) => {
     latest.current = next;
@@ -59,8 +67,9 @@ export function ProjectProvider({ initial, children }: { initial: Project; child
       canUndo: canUndo(history),
       canRedo: canRedo(history),
       ai,
+      aiMode,
     }),
-    [history, run, commit, ai],
+    [history, run, commit, ai, aiMode],
   );
 
   return <Context.Provider value={value}>{children}</Context.Provider>;

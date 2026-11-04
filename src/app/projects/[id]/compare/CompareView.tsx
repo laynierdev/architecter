@@ -4,7 +4,10 @@ import { useState } from "react";
 import { compareAlternatives, CRITERIA, DEFAULT_WEIGHTS, rankAlternatives } from "@/domain/comparison";
 import { addAlternative, removeAlternative, updateAlternative } from "@/domain/quality";
 import type { Alternative, CriterionId, CriterionWeights } from "@/domain/types";
+import { AiNotice } from "@/components/ui/AiNotice";
 import { cleanLines, Field, FormError, LinesField } from "@/components/ui/Fields";
+import { useAction } from "@/components/ui/useAction";
+import type { AlternativeDraft } from "@/domain/types";
 import { Modal } from "@/components/ui/Modal";
 import { useProject } from "@/state/ProjectContext";
 
@@ -83,9 +86,70 @@ function AlternativeForm({ initial, onClose }: { initial?: Alternative; onClose:
   );
 }
 
-export function CompareView() {
+function SuggestionsReview({ drafts, onClose }: { drafts: AlternativeDraft[]; onClose: () => void }) {
   const { project, run } = useProject();
+  const known = new Set(project.alternatives.map((a) => a.name.trim().toLowerCase()));
+  const fresh = drafts.filter((d) => !known.has(d.name.trim().toLowerCase()));
+  const [selected, setSelected] = useState<Set<number>>(() => new Set(fresh.map((_, i) => i)));
+  const [error, setError] = useState<string | null>(null);
+
+  const toggle = (i: number) =>
+    setSelected((s) => {
+      const next = new Set(s);
+      if (next.has(i)) next.delete(i);
+      else next.add(i);
+      return next;
+    });
+
+  const add = () => {
+    for (const draft of fresh.filter((_, i) => selected.has(i))) {
+      const result = run((p) => addAlternative(p, draft));
+      if (!result.ok) return setError(result.error);
+    }
+    onClose();
+  };
+
+  return (
+    <Modal title="Suggested alternatives" onClose={onClose} size="lg">
+      <AiNotice what="comparison" />
+      <p className="fs-xs text-muted-ar">Ratings and costs are rough estimates meant to start a discussion. Edit them after adding.</p>
+      <FormError message={error} />
+      {fresh.length === 0 ? (
+        <p className="text-muted-ar">Nothing new to suggest: these options are already in your comparison.</p>
+      ) : (
+        <ul className="list-group mb-3">
+          {fresh.map((d, i) => (
+            <li key={d.name} className="list-group-item d-flex gap-2">
+              <input id={`alt-s-${i}`} type="checkbox" className="form-check-input mt-1" checked={selected.has(i)} onChange={() => toggle(i)} />
+              <label htmlFor={`alt-s-${i}`}>
+                <span className="fw-semibold d-block">{d.name}</span>
+                <span className="fs-xs text-muted-ar d-block">{d.summary}</span>
+                <span className="fs-xs d-block mt-1">{d.fitVerdict}</span>
+                {d.costEstimate && (
+                  <span className="fs-xs d-block text-muted-ar">
+                    {d.costEstimate} (estimate). {d.costAssumptions}
+                  </span>
+                )}
+              </label>
+            </li>
+          ))}
+        </ul>
+      )}
+      <div className="d-flex gap-2 justify-content-end">
+        <button type="button" className="btn btn-outline-secondary" onClick={onClose}>Close</button>
+        <button type="button" className="btn btn-primary" disabled={selected.size === 0 || fresh.length === 0} onClick={add}>
+          Add {selected.size} selected
+        </button>
+      </div>
+    </Modal>
+  );
+}
+
+export function CompareView() {
+  const { project, run, ai } = useProject();
   const { alternatives } = project;
+  const [drafts, setDrafts] = useState<AlternativeDraft[] | null>(null);
+  const suggest = useAction();
   const [aChoice, setAId] = useState("");
   const [bChoice, setBId] = useState("");
   const [weights, setWeights] = useState<CriterionWeights>(DEFAULT_WEIGHTS);
@@ -98,10 +162,31 @@ export function CompareView() {
   const allZero = CRITERIA.every((c) => weights[c] === 0);
 
   const addButton = (
-    <button type="button" className="btn btn-primary" onClick={() => setForm({})}>
-      <i className="bi bi-plus-lg me-1" aria-hidden="true" />Add alternative
-    </button>
+    <span className="d-inline-flex gap-2">
+      <button
+        type="button"
+        className="btn btn-outline-primary"
+        disabled={suggest.busy}
+        onClick={async () => {
+          const r = await suggest.run(() => ai.suggestAlternatives(project));
+          if (r) setDrafts(r);
+        }}
+      >
+        <i className="bi bi-stars me-1" aria-hidden="true" />
+        {suggest.busy ? "Thinking…" : "Suggest alternatives"}
+        {ai.isMock && <span className="badge text-bg-warning ms-1">mock</span>}
+      </button>
+      <button type="button" className="btn btn-primary" onClick={() => setForm({})}>
+        <i className="bi bi-plus-lg me-1" aria-hidden="true" />Add alternative
+      </button>
+    </span>
   );
+  const suggestionError = suggest.error ? (
+    <div className="alert alert-danger py-2 fs-xs" role="alert">
+      {suggest.error}
+    </div>
+  ) : null;
+  const suggestionsModal = drafts ? <SuggestionsReview drafts={drafts} onClose={() => setDrafts(null)} /> : null;
 
   if (alternatives.length === 0) {
     return (
@@ -110,6 +195,8 @@ export function CompareView() {
         <h2 className="h5 mt-2">No alternatives recorded</h2>
         <p className="text-muted-ar">Document the options you are considering (for example monolith vs. services) to compare their trade-offs.</p>
         <div>{addButton}</div>
+        {suggestionError}
+        {suggestionsModal}
         {form && <AlternativeForm initial={form.initial} onClose={() => setForm(null)} />}
       </div>
     );
@@ -121,6 +208,7 @@ export function CompareView() {
   return (
     <div className="d-grid gap-4">
       <div className="d-flex justify-content-end">{addButton}</div>
+      {suggestionError}
 
       <section className="ar-card" aria-label="Importance of each criterion">
         <div className="ar-card-header">
@@ -232,6 +320,7 @@ export function CompareView() {
           </div>
         </>
       )}
+      {suggestionsModal}
       {form && <AlternativeForm initial={form.initial} onClose={() => setForm(null)} />}
     </div>
   );

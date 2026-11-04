@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { createAIProvider, suggestedQuestions } from "@/ai";
+import { suggestedQuestions } from "@/ai";
+import { MockAIProvider } from "@/ai/mockProvider";
 import { AIResponseError, validated } from "@/ai/validate";
 import { approveProposal, applyProposal } from "@/domain/proposals";
 import { mergeAnalysis } from "@/domain/requirements";
@@ -7,7 +8,7 @@ import { createProject, validateProject } from "@/domain/project";
 import { RequirementsAnalysisSchema, RiskDraftSchema, AdrDraftSchema } from "@/domain/schemas";
 import { demoProject } from "@/mock/demoProject";
 
-const ai = createAIProvider();
+const ai = new MockAIProvider();
 const BRIEF = `Customers can order food and pay online. Restaurants must be able to manage their menu.
 The checkout must be highly available, with 99.9% uptime. We expect 100,000 monthly users and about 50 orders per second at peak.
 Couriers should share their live location for real-time tracking. Customers should get push notifications on mobile. Pages should load fast.`;
@@ -120,6 +121,22 @@ describe("mock provider", () => {
     expect(adr.title).toContain("Redis");
     const topicOnly = await ai.suggestAdr(demoProject, { topic: "Pick a region" });
     expect(topicOnly.title).toBe("Pick a region");
+  });
+
+  it("explains a component from project data and rejects unknown ones", async () => {
+    const r = await ai.explainComponent(demoProject, "cache");
+    expect(r.answer).toContain("Redis");
+    expect(r.answer).toContain("Mock explanation");
+    expect(r.references).toContain("Redis");
+    await expect(ai.explainComponent(demoProject, "ghost")).rejects.toThrow(/does not exist/);
+  });
+
+  it("suggests valid, comparable alternatives that are never marked current", async () => {
+    const alts = await ai.suggestAlternatives(demoProject);
+    expect(alts.length).toBeGreaterThanOrEqual(2);
+    expect(alts.every((a) => !a.isCurrent && a.costAssumptions.length > 0)).toBe(true);
+    const names = alts.map((a) => a.name);
+    expect(new Set(names).size).toBe(names.length);
   });
 
   it("impact analysis matches the domain logic", async () => {

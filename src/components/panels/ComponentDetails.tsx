@@ -4,7 +4,9 @@ import { useState } from "react";
 import { analyzeImpact, confirmComponent } from "@/domain/architecture";
 import type { ArchComponent, Project, Relationship } from "@/domain/types";
 import { KIND_META } from "@/services/kindMeta";
+import { AiNotice } from "@/components/ui/AiNotice";
 import { ProvenanceBadge } from "@/components/ui/ProvenanceBadge";
+import { useAction } from "@/components/ui/useAction";
 import type { Selection } from "@/components/diagram/DiagramCanvas";
 import { useProject } from "@/state/ProjectContext";
 
@@ -43,8 +45,10 @@ function nameOf(project: Project, id: string) {
 }
 
 function ComponentView({ project, component, actions }: { project: Project; component: ArchComponent; actions: DetailsActions }) {
-  const { run } = useProject();
+  const { run, ai } = useProject();
   const [showTech, setShowTech] = useState(false);
+  const [insight, setInsight] = useState<{ title: string; text: string } | null>(null);
+  const insightAction = useAction();
   const meta = KIND_META[component.kind];
   const outgoing = project.relationships.filter((r) => r.source === component.id);
   const incoming = project.relationships.filter((r) => r.target === component.id);
@@ -78,6 +82,47 @@ function ComponentView({ project, component, actions }: { project: Project; comp
           <i className="bi bi-trash me-1" aria-hidden="true" />Delete
         </button>
       </div>
+
+      <div className="d-flex flex-wrap gap-2 mb-3">
+        <button
+          type="button"
+          className="btn btn-sm btn-outline-secondary"
+          disabled={insightAction.busy}
+          onClick={async () => {
+            const r = await insightAction.run(() => ai.explainComponent(project, component.id));
+            if (r) setInsight({ title: "Explanation", text: r.answer });
+          }}
+        >
+          <i className="bi bi-lightbulb me-1" aria-hidden="true" />Explain
+        </button>
+        <button
+          type="button"
+          className="btn btn-sm btn-outline-secondary"
+          disabled={insightAction.busy}
+          onClick={async () => {
+            const r = await insightAction.run(() => ai.analyzeImpact(project, component.id));
+            if (r) setInsight({ title: "Impact if it changes or fails", text: r.summary });
+          }}
+        >
+          <i className="bi bi-bullseye me-1" aria-hidden="true" />Analyze impact
+        </button>
+      </div>
+      {insightAction.busy && <p className="fs-xs text-muted-ar">Thinking…</p>}
+      {insightAction.error && (
+        <div className="alert alert-danger py-2 fs-xs" role="alert">
+          {insightAction.error}
+        </div>
+      )}
+      {insight && !insightAction.busy && (
+        <div className="ar-card ar-card-body mb-3">
+          <AiNotice what="explanation" />
+          <h3 className="h6">{insight.title}</h3>
+          <div style={{ whiteSpace: "pre-line" }}>{insight.text}</div>
+          <button type="button" className="btn btn-sm btn-link p-0 mt-2" onClick={() => setInsight(null)}>
+            Dismiss
+          </button>
+        </div>
+      )}
 
       <p>{component.description || <span className="text-muted-ar">No description yet.</span>}</p>
 

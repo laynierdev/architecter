@@ -262,3 +262,5 @@ export const AdvisorAnswerSchema = z.object({
   /** Project elements the answer is based on, so users can verify it. */
   references: z.array(text(120)),
 });
+
+export const AlternativeDraftSchema = AlternativeSchema.omit({ id: true });

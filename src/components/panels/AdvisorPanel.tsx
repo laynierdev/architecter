@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { suggestedQuestions } from "@/ai";
+import { AiNotice } from "@/components/ui/AiNotice";
 import { useAction } from "@/components/ui/useAction";
 import { useProject } from "@/state/ProjectContext";
 
@@ -34,14 +35,7 @@ export function AdvisorPanel({ focusComponentId }: { focusComponentId?: string }
 
   return (
     <div className="d-flex flex-column h-100">
-      {ai.isMock && (
-        <div className="alert alert-warning py-2 fs-xs d-flex gap-2" role="note">
-          <i className="bi bi-robot" aria-hidden="true" />
-          <div>
-            <strong>Mock advisor.</strong> Answers are composed from your project data by fixed rules, not by a language model. Real AI arrives in Stage 3.
-          </div>
-        </div>
-      )}
+      <AiNotice what="answer" />
 
       <div className="flex-grow-1" aria-live="polite">
         {messages.length === 0 && (

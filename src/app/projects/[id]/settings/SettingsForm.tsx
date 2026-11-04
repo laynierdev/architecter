@@ -9,7 +9,7 @@ import { Stage1Notice } from "@/components/ui/Stage1Notice";
 import { useProject } from "@/state/ProjectContext";
 
 export function SettingsForm() {
-  const { project, run, ai } = useProject();
+  const { project, run, aiMode } = useProject();
   const [name, setName] = useState(project.name);
   const [tagline, setTagline] = useState(project.tagline);
   const [description, setDescription] = useState(project.description);
@@ -61,11 +61,14 @@ export function SettingsForm() {
 
       <section className="ar-card ar-card-body" aria-labelledby="ai-h">
         <h2 id="ai-h" className="h6">AI provider</h2>
-        <p className="mb-2">Current mode: <span className={`badge ${ai.isMock ? "text-bg-warning" : "text-bg-success"}`}>{ai.name}</span></p>
+        <p className="mb-2">
+          Active provider: <span className={`badge ${aiMode.provider === "mock" ? "text-bg-warning" : "text-bg-success"}`}>{aiMode.known ? aiMode.provider : "checking…"}</span>
+          {aiMode.provider === "gemini" && aiMode.model && <span className="fs-xs text-muted-ar ms-2">{aiMode.model}</span>}
+        </p>
         <p className="fs-xs text-muted-ar mb-0">
-          {ai.isMock
-            ? "Responses come from deterministic rules, not a language model. The Gemini provider is configured with a server-side environment variable in Stage 3; keys are never entered or stored in the browser."
-            : "Responses come from the configured model."}
+          The provider is chosen on the server from environment variables (see <code>.env.example</code>): your API key is never entered into or stored by the browser.
+          {aiMode.fallback ? ` The last request used the mock because: ${aiMode.reason ?? "the provider was unavailable"}.` : ""}
+          {aiMode.provider === "mock" && !aiMode.fallback ? " Without a key, answers come from deterministic rules instead of a language model." : ""}
         </p>
       </section>
     </div>
