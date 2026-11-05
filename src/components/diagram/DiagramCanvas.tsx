@@ -92,7 +92,7 @@ export function DiagramCanvas({ components, relationships, selection, onSelect, 
       onNodeClick={(_, node) => onSelect({ type: "component", id: node.id })}
       onEdgeClick={(_, edge) => onSelect({ type: "relationship", id: edge.id })}
       onPaneClick={() => onSelect(null)}
-      proOptions={{ hideAttribution: true }}
+      attributionPosition="top-right"
       aria-label="Architecture diagram. Click a component or connection to inspect it."
     >
       <Background gap={22} color="#e4e7ef" />

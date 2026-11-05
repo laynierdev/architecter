@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, type ReactNode } from "react";
+import { useEffect, useId, useRef, type ReactNode } from "react";
 
 interface FieldProps {
   label: string;
@@ -66,9 +66,15 @@ export function LinesField({ label, value, onChange, help }: { label: string; va
 export const cleanLines = (lines: string[]): string[] => lines.map((l) => l.trim()).filter(Boolean);
 
 export function FormError({ message }: { message: string | null }): ReactNode {
+  const ref = useRef<HTMLDivElement>(null);
+  // A message above a long form is useless if it is off screen: bring it into view when it appears.
+  useEffect(() => {
+    if (message) ref.current?.scrollIntoView?.({ block: "nearest", behavior: "smooth" });
+  }, [message]);
+
   if (!message) return null;
   return (
-    <div className="alert alert-danger py-2" role="alert">
+    <div ref={ref} className="alert alert-danger py-2" role="alert">
       {message}
     </div>
   );

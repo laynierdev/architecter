@@ -168,9 +168,9 @@ export function AdrWorkspace() {
                 </select>
               </div>
               {adr.status === "accepted" && supersedable.length > 0 && (
-                <div className="d-flex align-items-center gap-2">
+                <div className="d-flex align-items-center gap-2 min-w-0 mw-100">
                   <label htmlFor="adr-supersede" className="mb-0 fs-xs">Superseded by</label>
-                  <select id="adr-supersede" className="form-select form-select-sm" style={{ width: "auto" }} value="" onChange={(e) => e.target.value && act((p) => supersedeAdr(p, adr.id, e.target.value))}>
+                  <select id="adr-supersede" className="form-select form-select-sm" style={{ width: "auto", maxWidth: "100%", minWidth: 0 }} value="" onChange={(e) => e.target.value && act((p) => supersedeAdr(p, adr.id, e.target.value))}>
                     <option value="">Choose…</option>
                     {supersedable.map((a) => <option key={a.id} value={a.id}>{adrCode(a.number)}: {a.title}</option>)}
                   </select>

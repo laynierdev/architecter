@@ -24,7 +24,7 @@ export function ProjectNav({ projectId, projectName, tagline }: { projectId: str
         <div className="fw-semibold">{projectName}</div>
         <div className="fs-xs text-muted-ar">{tagline}</div>
       </div>
-      <div className="ar-nav-list d-grid gap-1">
+      <div className="ar-nav-list">
         {ITEMS.map((item) => {
           const href = item.slug ? `${base}/${item.slug}` : base;
           const active = item.slug ? pathname.startsWith(href) : pathname === base;
