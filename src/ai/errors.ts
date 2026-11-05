@@ -22,7 +22,7 @@ export class AIUserError extends Error {
   }
 }
 
-export type AIErrorCode = "not_configured" | "timeout" | "rate_limited" | "unavailable" | "auth" | "bad_request" | "invalid_response" | "unknown";
+export type AIErrorCode = "not_configured" | "timeout" | "rate_limited" | "quota_exceeded" | "unavailable" | "auth" | "bad_request" | "invalid_response" | "unknown";
 
 /** A failure of the AI service itself, already classified. Messages never contain secrets. */
 export class AIServiceError extends Error {
@@ -30,8 +30,12 @@ export class AIServiceError extends Error {
     readonly code: AIErrorCode,
     message: string,
     readonly retryable: boolean,
+    /** The original error, kept for server-side diagnostics only. It is never sent to clients. */
+    cause?: unknown,
+    /** How long the provider asked us to wait before retrying, when it said so. */
+    readonly retryAfterMs?: number,
   ) {
-    super(message);
+    super(message, { cause });
     this.name = "AIServiceError";
   }
 }
@@ -41,6 +45,7 @@ export const ERROR_MESSAGES: Record<AIErrorCode, string> = {
   not_configured: "The AI provider is not configured.",
   timeout: "The AI provider took too long to respond.",
   rate_limited: "The AI provider is rate limiting requests. Try again in a moment.",
+  quota_exceeded: "The AI provider quota is used up (for example the daily free-tier limit). Try again later, use another model, or check your plan.",
   unavailable: "The AI provider is temporarily unavailable.",
   auth: "The AI provider rejected the credentials.",
   bad_request: "The AI provider rejected the request.",

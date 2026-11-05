@@ -66,6 +66,18 @@ export class AIService {
     return this.gemini;
   }
 
+  /**
+   * Development only: prints the provider's own error text (status and message) so a developer can
+   * fix configuration or schema problems. The API key is redacted and the output is truncated.
+   * This is never enabled in production and never reaches the client.
+   */
+  private logDevDiagnostics(error: AIServiceError) {
+    const cause = error.cause as { status?: number; message?: string } | undefined;
+    let text = String(cause?.message ?? "no details");
+    if (this.config.apiKey) text = text.split(this.config.apiKey).join("[redacted]");
+    console.warn(`[ai:dev] status=${cause?.status ?? "n/a"} ${text.slice(0, 600)}`);
+  }
+
   async execute<T>(call: (provider: AIProvider) => Promise<T>): Promise<{ data: T; meta: AIRunMeta }> {
     if (wantedProvider(this.config) === "mock") {
       return { data: await call(this.mock), meta: { provider: "mock", fallback: false } };
@@ -80,6 +92,7 @@ export class AIService {
       if (error instanceof AIUserError) throw error;
       // Only the error category is logged: raw messages can contain request details.
       console.warn(`[ai] gemini request failed (${error.code})`);
+      if (process.env.NODE_ENV !== "production") this.logDevDiagnostics(error);
       if (!this.config.fallbackToMock) throw error;
       return {
         data: await call(this.mock),

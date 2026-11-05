@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { AIResponseError, AIServiceError, AIUserError } from "@/ai/errors";
-import { classifyError, DEFAULT_RETRY, parseJsonLoose, withRetry, withTimeout } from "@/ai/llm/resilience";
+import { classifyError, DEFAULT_RETRY, parseJsonLoose, parseRetryDelayMs, withRetry, withTimeout } from "@/ai/llm/resilience";
 
 const fastRetry = { ...DEFAULT_RETRY, sleep: async () => undefined, random: () => 0 };
 const http = (status: number) => Object.assign(new Error("boom with secret-key-123"), { status });
@@ -13,6 +13,25 @@ describe("classifyError", () => {
     expect(classifyError(http(401))).toMatchObject({ code: "auth", retryable: false });
     expect(classifyError(http(403))).toMatchObject({ code: "auth", retryable: false });
     expect(classifyError(http(400))).toMatchObject({ code: "bad_request", retryable: false });
+  });
+
+  it("fails fast on a daily quota instead of retrying (retries would burn more quota)", () => {
+    const daily = Object.assign(new Error("Quota exceeded ... Generate content requests per day limit exceeded on Free Tier. Please retry in 10h38m33.2s."), { status: 429 });
+    expect(classifyError(daily)).toMatchObject({ code: "quota_exceeded", retryable: false });
+    const longWait = Object.assign(new Error("Please retry in 2m"), { status: 429 });
+    expect(classifyError(longWait)).toMatchObject({ code: "quota_exceeded", retryable: false });
+  });
+
+  it("honours a short per-minute retry hint", () => {
+    const perMinute = Object.assign(new Error("requests per minute limit exceeded. Please retry in 22.05s."), { status: 429 });
+    expect(classifyError(perMinute)).toMatchObject({ code: "rate_limited", retryable: true, retryAfterMs: 22_050 });
+  });
+
+  it("parses retry hints", () => {
+    expect(parseRetryDelayMs("Please retry in 29.5s.")).toBe(29_500);
+    expect(parseRetryDelayMs("retry in 1m5s")).toBe(65_000);
+    expect(parseRetryDelayMs("Please retry in 10h38m33.2s")).toBe(38_313_200);
+    expect(parseRetryDelayMs("no hint here")).toBeUndefined();
   });
 
   it("treats Google's 400 for an invalid API key as an auth problem", () => {
@@ -60,6 +79,20 @@ describe("withRetry", () => {
   it("does not retry user errors", async () => {
     const fn = vi.fn().mockRejectedValue(new AIUserError("nope"));
     await expect(withRetry(fn, fastRetry)).rejects.toBeInstanceOf(AIUserError);
+    expect(fn).toHaveBeenCalledTimes(1);
+  });
+
+  it("waits as long as the provider asked when it gives a retry hint", async () => {
+    const delays: number[] = [];
+    const hinted = Object.assign(new Error("Please retry in 12s."), { status: 429 });
+    const fn = vi.fn().mockRejectedValueOnce(hinted).mockResolvedValue("ok");
+    await withRetry(fn, { ...DEFAULT_RETRY, random: () => 0, sleep: async (ms) => void delays.push(ms) });
+    expect(delays).toEqual([12_500]);
+  });
+
+  it("does not retry a daily quota at all", async () => {
+    const fn = vi.fn().mockRejectedValue(Object.assign(new Error("requests per day limit exceeded"), { status: 429 }));
+    await expect(withRetry(fn, fastRetry)).rejects.toMatchObject({ code: "quota_exceeded" });
     expect(fn).toHaveBeenCalledTimes(1);
   });
 
