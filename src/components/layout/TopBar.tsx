@@ -12,7 +12,7 @@ export function TopBar() {
         </span>
       </Link>
       <div className="ms-auto d-flex align-items-center gap-2">
-        <span className="badge text-bg-light border fw-normal" title="Projects are kept in memory until persistence is added">
+        <span className="badge text-bg-light border fw-normal" title="Projects are saved in this browser only">
           <i className="bi bi-flask me-1" aria-hidden="true" />
           Preview build
         </span>

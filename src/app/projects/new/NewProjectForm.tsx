@@ -3,10 +3,11 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { createProject } from "@/domain/project";
+import type { Project } from "@/domain/types";
+import { StorageError } from "@/repositories/projectRepository";
 import { Field, FormError } from "@/components/ui/Fields";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { Stage1Notice } from "@/components/ui/Stage1Notice";
-import { projectRepository } from "@/state/store";
+import { getProjectRepository } from "@/state/store";
 
 const TARGETS = [
   { id: "users", label: "Expected users", placeholder: "e.g. 100,000 monthly" },
@@ -24,15 +25,24 @@ export function NewProjectForm() {
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
+    let project: Project | undefined;
     try {
-      const project = createProject({
+      project = createProject({
         name,
         description,
         targets: TARGETS.map((t) => ({ label: t.label, value: targets[t.id] ?? "" })),
       });
-      projectRepository.save(project);
+      getProjectRepository().save(project);
       router.push(`/projects/${project.id}/requirements`);
     } catch (err) {
+      // A project that could not be written must not linger in the list half-created.
+      if (project && err instanceof StorageError) {
+        try {
+          getProjectRepository().delete(project.id);
+        } catch {
+          /* The write failed already; nothing more to clean up. */
+        }
+      }
       setError(err instanceof Error ? err.message : "Could not create the project.");
     }
   };
@@ -40,7 +50,6 @@ export function NewProjectForm() {
   return (
     <form onSubmit={submit} noValidate>
       <PageHeader title="New project" description="Describe what you want to build. You can refine everything later." />
-      <Stage1Notice>The project is kept in memory until Stage 4 adds persistence: reloading the page removes it.</Stage1Notice>
       <FormError message={error} />
 
       <div className="ar-card ar-card-body mb-3">

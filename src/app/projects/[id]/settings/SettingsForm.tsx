@@ -5,7 +5,6 @@ import { adrsToMarkdown, exportProjectJson, toMarkdown, toMermaid } from "@/doma
 import { updateProjectInfo } from "@/domain/project";
 import { Field, FormError } from "@/components/ui/Fields";
 import { downloadText, slug } from "@/components/ui/download";
-import { Stage1Notice } from "@/components/ui/Stage1Notice";
 import { useProject } from "@/state/ProjectContext";
 
 export function SettingsForm() {
@@ -34,7 +33,6 @@ export function SettingsForm() {
           setSaved(result.ok);
         }}
       >
-        <Stage1Notice>Changes are kept in memory only until Stage 4 adds persistence: a page reload resets them.</Stage1Notice>
         <div className="ar-card ar-card-body mb-3">
           <FormError message={error} />
           <Field label="Project name" value={name} onChange={(v) => { setName(v); setSaved(false); }} required />
@@ -49,7 +47,7 @@ export function SettingsForm() {
 
       <section className="ar-card ar-card-body" aria-labelledby="export-h">
         <h2 id="export-h" className="h6">Export</h2>
-        <p className="fs-xs text-muted-ar">Exports are generated from your project data, never from a separate AI summary. Import and restore arrive in Stage 4.</p>
+        <p className="fs-xs text-muted-ar">Exports are generated from your project data, never from a separate AI summary. To restore a backup, use “Import backup” on the dashboard. Source documents keep their extracted text in the backup, but not the original files.</p>
         <div className="d-flex flex-wrap gap-2">
           {exports.map((x) => (
             <button key={x.label} type="button" className="btn btn-outline-secondary" disabled={x.disabled} onClick={() => downloadText(x.file, x.build(), x.mime)}>

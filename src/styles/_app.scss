@@ -401,3 +401,14 @@ body {
 
 .toolbar-sep { width: 1px; align-self: stretch; background: var(--ar-border); }
 .hover-row:hover { background: #f6f7fb; }
+
+// Card footers and links ---------------------------------------------------
+.ar-card-footer {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.35rem 0.6rem;
+  border-top: 1px solid var(--ar-border);
+  .btn-link { text-decoration: none; font-size: 0.8rem; padding: 0.2rem 0.5rem; }
+}
+a.ar-card-link:hover { background: #fafbff; }

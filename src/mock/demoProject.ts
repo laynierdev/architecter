@@ -456,6 +456,7 @@ export const demoProject: Project = {
     },
   ],
   snapshots: [],
+  documents: [],
   createdAt: "2026-11-04T09:00:00.000Z",
   updatedAt: "2026-11-04T09:00:00.000Z",
 };

@@ -161,6 +161,7 @@ describe("browser client provider", () => {
     const [url, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
     expect(url).toBe("/api/ai/suggest-risks");
     expect(JSON.parse(init.body as string).project.snapshots).toEqual([]);
+    expect(JSON.parse(init.body as string).project.documents).toEqual([]);
     expect(client.getSnapshot()).toMatchObject({ provider: "gemini", known: true, fallback: false, model: "gemini-x" });
     expect(client.isMock).toBe(false);
   });
