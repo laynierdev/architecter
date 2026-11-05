@@ -8,7 +8,7 @@ import { handleAiRequest } from "@/ai/server/handler";
 import { AIService } from "@/ai/server/service";
 import { demoProject } from "@/mock/demoProject";
 
-const config = (overrides: Partial<AIConfig> = {}): AIConfig => ({ mode: "auto", model: "m", timeoutMs: 1000, maxAttempts: 3, fallbackToMock: true, ...overrides });
+const config = (overrides: Partial<AIConfig> = {}): AIConfig => ({ mode: "auto", model: "m", timeoutMs: 1000, maxAttempts: 3, fallbackToMock: true, rateLimitPerMinute: 10, dailyBudget: 300, ...overrides });
 
 /** A Gemini stand-in whose every method fails with the given error. */
 function failingProvider(error: Error): AIProvider {

@@ -1,7 +1,12 @@
 {
   "name": "architecter",
-  "version": "0.1.0",
+  "version": "1.0.0",
+  "description": "AI-assisted system design studio: from requirements to architecture.",
   "private": true,
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.9.0"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -9,7 +14,8 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "check": "npm run lint && npm run typecheck && npm test && npm run build"
   },
   "dependencies": {
     "@google/genai": "^2.32.0",

@@ -11,6 +11,10 @@ export interface AIConfig {
   maxAttempts: number;
   /** When the model fails, answer with the mock provider (clearly flagged) instead of an error. */
   fallbackToMock: boolean;
+  /** Gemini requests per minute and per client (zero disables). Protects a public deployment from abuse. */
+  rateLimitPerMinute: number;
+  /** Gemini requests per UTC day for the whole deployment (zero means unlimited). A hard stop on cost. */
+  dailyBudget: number;
 }
 
 type Env = Record<string, string | undefined>;
@@ -33,6 +37,8 @@ export function readAIConfig(env: Env): AIConfig {
     timeoutMs: clampInt(env.AI_TIMEOUT_MS, 20_000, 1_000, 55_000),
     maxAttempts: clampInt(env.AI_MAX_ATTEMPTS, 3, 1, 4),
     fallbackToMock: (env.AI_FALLBACK_TO_MOCK ?? "true").trim().toLowerCase() !== "false",
+    rateLimitPerMinute: clampInt(env.AI_RATE_LIMIT_PER_MINUTE, 10, 0, 1_000),
+    dailyBudget: clampInt(env.AI_DAILY_BUDGET, 300, 0, 1_000_000),
   };
 }
 

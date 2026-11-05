@@ -78,7 +78,14 @@ export class AIService {
     console.warn(`[ai:dev] status=${cause?.status ?? "n/a"} ${text.slice(0, 600)}`);
   }
 
-  async execute<T>(call: (provider: AIProvider) => Promise<T>): Promise<{ data: T; meta: AIRunMeta }> {
+  /**
+   * `forceMock` answers with the mock without touching the paid model (used by the usage guard);
+   * its text is shown to the user as the reason.
+   */
+  async execute<T>(call: (provider: AIProvider) => Promise<T>, options: { forceMock?: string } = {}): Promise<{ data: T; meta: AIRunMeta }> {
+    if (options.forceMock !== undefined) {
+      return { data: await call(this.mock), meta: { provider: "mock", fallback: true, fallbackReason: options.forceMock } };
+    }
     if (wantedProvider(this.config) === "mock") {
       return { data: await call(this.mock), meta: { provider: "mock", fallback: false } };
     }

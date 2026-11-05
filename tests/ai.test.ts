@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { suggestedQuestions } from "@/ai";
 import { MockAIProvider } from "@/ai/mockProvider";
-import { AIResponseError, validated } from "@/ai/validate";
+import { AIResponseError, validated } from "@/ai/errors";
 import { approveProposal, applyProposal } from "@/domain/proposals";
 import { mergeAnalysis } from "@/domain/requirements";
 import { createProject, validateProject } from "@/domain/project";

@@ -237,9 +237,9 @@ export function CompareView() {
           <div className="ar-card-header"><h2 className="h6 mb-0">Ranking for your priorities</h2></div>
           <ol className="list-group list-group-flush list-group-numbered">
             {ranking.map((r) => (
-              <li key={r.alternative.id} className="list-group-item d-flex justify-content-between">
+              <li key={r.alternative.id} className="list-group-item d-flex gap-2 align-items-baseline">
                 <span>{r.alternative.name}{r.alternative.isCurrent && <span className="status-badge status-proposed ms-2">Current proposal</span>}</span>
-                <strong>{r.score} / 5</strong>
+                <strong className="ms-auto">{r.score} / 5</strong>
               </li>
             ))}
           </ol>
