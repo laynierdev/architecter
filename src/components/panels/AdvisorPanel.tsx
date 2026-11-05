@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { suggestedQuestions } from "@/ai";
 import { AiNotice } from "@/components/ui/AiNotice";
+import { scrollBehavior } from "@/components/ui/motion";
 import { useAction } from "@/components/ui/useAction";
 import { useProject } from "@/state/ProjectContext";
 
@@ -21,7 +22,7 @@ export function AdvisorPanel({ focusComponentId }: { focusComponentId?: string }
   const questions = suggestedQuestions(project);
 
   useEffect(() => {
-    endRef.current?.scrollIntoView?.({ behavior: "smooth", block: "end" });
+    endRef.current?.scrollIntoView?.({ behavior: scrollBehavior(), block: "end" });
   }, [messages.length]);
 
   const ask = async (question: string) => {

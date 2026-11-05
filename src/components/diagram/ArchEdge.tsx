@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { EdgeLabelRenderer, getBezierPath, type Edge, type EdgeProps } from "@xyflow/react";
 import { animate } from "motion";
+import { prefersReducedMotion } from "@/components/ui/motion";
 
 export type ArchEdgeData = {
   protocol: string;
@@ -34,7 +35,9 @@ export function ArchEdge({ sourceX, sourceY, targetX, targetY, sourcePosition, t
   useEffect(() => {
     const hide = () => dots.current.forEach((d) => d?.setAttribute("opacity", "0"));
     const el = pathRef.current;
-    if (!active || !el) {
+    // With "reduce motion" the glowing dot does not travel; the highlighted edge and nodes still
+    // show which connection is active.
+    if (!active || !el || prefersReducedMotion()) {
       hide();
       return;
     }

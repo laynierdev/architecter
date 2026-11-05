@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, type ReactNode } from "react";
+import { scrollBehavior } from "./motion";
 
 interface FieldProps {
   label: string;
@@ -69,7 +70,7 @@ export function FormError({ message }: { message: string | null }): ReactNode {
   const ref = useRef<HTMLDivElement>(null);
   // A message above a long form is useless if it is off screen: bring it into view when it appears.
   useEffect(() => {
-    if (message) ref.current?.scrollIntoView?.({ block: "nearest", behavior: "smooth" });
+    if (message) ref.current?.scrollIntoView?.({ block: "nearest", behavior: scrollBehavior() });
   }, [message]);
 
   if (!message) return null;

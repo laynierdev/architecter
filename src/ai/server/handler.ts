@@ -2,6 +2,7 @@ import { DomainError } from "@/domain/common";
 import { AIServiceError, AIUserError, type AIErrorCode } from "../errors";
 import { classifyError } from "../llm/resilience";
 import { isTaskName, MAX_BODY_BYTES, TASKS } from "../tasks";
+import type { AIGuard } from "./guard";
 import type { AIService } from "./service";
 
 const STATUS_BY_CODE: Record<AIErrorCode, number> = {
@@ -23,9 +24,18 @@ const failure = (status: number, code: string, message: string) => json({ ok: fa
  * HTTP handler for POST /api/ai/:task. Kept free of Next.js types so it can be tested directly.
  * Responses never include stack traces, raw provider messages or configuration values.
  */
-export async function handleAiRequest(taskName: string, request: Request, service: AIService): Promise<Response> {
+export async function handleAiRequest(taskName: string, request: Request, service: AIService, guard?: AIGuard): Promise<Response> {
   if (!isTaskName(taskName)) return failure(404, "unknown_task", "Unknown AI task.");
   const task = TASKS[taskName];
+
+  // Usage limits run before the body is read, so a flood is rejected cheaply.
+  const decision = guard?.check(request, service.status().provider === "gemini") ?? { kind: "allow" as const };
+  if (decision.kind === "limited") {
+    return Response.json(
+      { ok: false, error: { code: "too_many_requests", message: `Too many AI requests. Try again in ${decision.retryAfterSeconds} seconds.` } },
+      { status: 429, headers: { "Cache-Control": "no-store", "Retry-After": String(decision.retryAfterSeconds) } },
+    );
+  }
 
   const declared = Number(request.headers.get("content-length") ?? 0);
   if (declared > MAX_BODY_BYTES) return failure(413, "too_large", "The request is too large.");
@@ -48,7 +58,7 @@ export async function handleAiRequest(taskName: string, request: Request, servic
 
   try {
     // The task registry is heterogeneous, so the input type is erased here; each task validated its own input above.
-    const { data, meta } = await service.execute((provider) => (task.run as (p: typeof provider, i: unknown) => Promise<unknown>)(provider, parsed.data));
+    const { data, meta } = await service.execute((provider) => (task.run as (p: typeof provider, i: unknown) => Promise<unknown>)(provider, parsed.data), decision.kind === "mock" ? { forceMock: decision.reason } : {});
     return json({ ok: true, data, meta });
   } catch (e) {
     if (e instanceof AIUserError || e instanceof DomainError) return failure(422, "no_result", e.message);
