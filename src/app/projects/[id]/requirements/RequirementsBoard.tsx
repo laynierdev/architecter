@@ -3,7 +3,10 @@
 import { useState } from "react";
 import { addRequirement, answerQuestion, clearAnswer, mergeAnalysis, removeRequirement, removeTarget, setAssumptionStatus, unansweredQuestions, updateRequirement, upsertTarget, type RequirementKind } from "@/domain/requirements";
 import { updateProjectInfo } from "@/domain/project";
-import type { Priority, Requirement, RequirementsAnalysis } from "@/domain/types";
+import { MAX_ANALYSIS_TEXT_CHARS } from "@/ai/tasks";
+import type { Priority, Requirement, RequirementsAnalysis, SourceDocument } from "@/domain/types";
+import { DocumentUploadModal } from "./DocumentUploadModal";
+import { SourceDocuments } from "./SourceDocuments";
 import { AiNotice } from "@/components/ui/AiNotice";
 import { Field, FormError, SelectField } from "@/components/ui/Fields";
 import { Modal } from "@/components/ui/Modal";
@@ -90,7 +93,14 @@ function RequirementList({ title, kind }: { title: string; kind: RequirementKind
 
 // AI analysis review ----------------------------------------------------
 
-function AnalysisReview({ analysis, onClose }: { analysis: RequirementsAnalysis; onClose: () => void }) {
+interface PendingAnalysis {
+  analysis: RequirementsAnalysis;
+  /** What was analyzed, shown to the user (for example a file name). */
+  source?: string;
+  notice?: string;
+}
+
+function AnalysisReview({ analysis, source, notice, onClose }: PendingAnalysis & { onClose: () => void }) {
   const { run } = useProject();
   const groups = [
     { key: "functional", label: "Functional requirements", items: analysis.functional.map((x) => x.text), prov: "user" as const },
@@ -128,6 +138,17 @@ function AnalysisReview({ analysis, onClose }: { analysis: RequirementsAnalysis;
 
   return (
     <Modal title="Review extracted requirements" onClose={onClose} size="lg">
+      {source && (
+        <p className="mb-2">
+          <i className="bi bi-file-earmark-text me-1" aria-hidden="true" />
+          Extracted from <strong>{source}</strong>
+        </p>
+      )}
+      {notice && (
+        <div className="alert alert-warning py-2 fs-xs" role="status">
+          {notice}
+        </div>
+      )}
       <AiNotice what="extraction" />
       <p className="fs-xs text-muted-ar">Check every item: nothing is added to your project until you accept it.</p>
       {total === 0 && analysis.functional.length + analysis.nonFunctional.length + analysis.targets.length + analysis.assumptions.length + analysis.questions.length === 0 && (
@@ -161,7 +182,8 @@ function AnalysisReview({ analysis, onClose }: { analysis: RequirementsAnalysis;
 export function RequirementsBoard() {
   const { project, run, ai } = useProject();
   const [brief, setBrief] = useState(project.description);
-  const [analysis, setAnalysis] = useState<RequirementsAnalysis | null>(null);
+  const [pending, setPending] = useState<PendingAnalysis | null>(null);
+  const [uploading, setUploading] = useState(false);
   const analyze = useAction();
   const [targetLabel, setTargetLabel] = useState("");
   const [targetValue, setTargetValue] = useState("");
@@ -169,17 +191,32 @@ export function RequirementsBoard() {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [questionError, setQuestionError] = useState<string | null>(null);
 
+  /** What the project already knows, so the analysis does not ask for it again. */
+  const knownContext = () =>
+    [...project.targets.map((t) => `${t.label}: ${t.value}`), ...project.openQuestions.filter((q) => q.answer).map((q) => `${q.question} ${q.answer}`)].join("\n");
+
   const runAnalysis = async () => {
     // The description is saved first so the user's input is never silently discarded.
     run((p) => updateProjectInfo(p, { description: brief }));
-    const context = [...project.targets.map((t) => `${t.label}: ${t.value}`), ...project.openQuestions.filter((q) => q.answer).map((q) => `${q.question} ${q.answer}`)].join("\n");
-    const result = await analyze.run(() => ai.analyzeRequirements({ text: brief, context }));
-    if (result) setAnalysis(result);
+    const result = await analyze.run(() => ai.analyzeRequirements({ text: brief, context: knownContext() }));
+    if (result) setPending({ analysis: result });
+  };
+
+  /** Analyzes the text of an attached document. Results still go through the review step. */
+  const analyzeDocument = async (doc: SourceDocument) => {
+    const context = knownContext();
+    const text = doc.extractedText.slice(0, MAX_ANALYSIS_TEXT_CHARS);
+    const notice =
+      doc.extractedText.length > MAX_ANALYSIS_TEXT_CHARS
+        ? `Only the first ${MAX_ANALYSIS_TEXT_CHARS.toLocaleString("en-US")} of ${doc.extractedText.length.toLocaleString("en-US")} characters of this document were analyzed.`
+        : undefined;
+    const result = await analyze.run(() => ai.analyzeRequirements({ text, context }));
+    if (result) setPending({ analysis: result, source: doc.name, notice });
   };
 
   const suggestQuestions = async () => {
     const questions = await analyze.run(() => ai.suggestQuestions(project));
-    if (questions) setAnalysis({ functional: [], nonFunctional: [], targets: [], assumptions: [], questions });
+    if (questions) setPending({ analysis: { functional: [], nonFunctional: [], targets: [], assumptions: [], questions } });
   };
 
   return (
@@ -198,10 +235,13 @@ export function RequirementsBoard() {
             </button>
             <button type="button" className="btn btn-outline-secondary" onClick={() => run((p) => updateProjectInfo(p, { description: brief }))} disabled={brief === project.description}>Save description</button>
             <button type="button" className="btn btn-outline-secondary" disabled={analyze.busy} onClick={suggestQuestions}>Suggest missing questions</button>
+            <button type="button" className="btn btn-outline-secondary" onClick={() => setUploading(true)}><i className="bi bi-file-earmark-arrow-up me-1" aria-hidden="true" />Upload document</button>
           </div>
           {brief.trim().length < 20 && <p className="fs-xs text-muted-ar mt-2 mb-0">Write at least a couple of sentences to enable the analysis.</p>}
         </div>
       </section>
+
+      <SourceDocuments busy={analyze.busy} onAdd={() => setUploading(true)} onAnalyze={(doc) => void analyzeDocument(doc)} />
 
       <div className="row g-3">
         <div className="col-12 col-xl-6"><RequirementList title="Functional requirements" kind="functional" /></div>
@@ -316,7 +356,15 @@ export function RequirementsBoard() {
         </ul>
       </section>
 
-      {analysis && <AnalysisReview analysis={analysis} onClose={() => setAnalysis(null)} />}
+      {pending && <AnalysisReview {...pending} onClose={() => setPending(null)} />}
+      {uploading && (
+        <DocumentUploadModal
+          onClose={() => setUploading(false)}
+          onAttached={(doc, analyzeNow) => {
+            if (analyzeNow) void analyzeDocument(doc);
+          }}
+        />
+      )}
     </div>
   );
 }

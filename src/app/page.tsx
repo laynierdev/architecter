@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { Stage1Notice } from "@/components/ui/Stage1Notice";
 import { ProjectList } from "./ProjectList";
 
 export default function DashboardPage() {
@@ -15,7 +14,6 @@ export default function DashboardPage() {
           </Link>
         }
       />
-      <Stage1Notice>Projects live in memory in this stage: they persist while you navigate but are reset when the page is reloaded. Saving arrives in Stage 4.</Stage1Notice>
 
       <ProjectList />
 

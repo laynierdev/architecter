@@ -25,12 +25,15 @@ export interface TaskDefinition<I = unknown, O = unknown> {
 
 const defineTask = <I, O>(task: TaskDefinition<I, O>): TaskDefinition<I, O> => task;
 
+/** Longest text the requirements analysis accepts. Longer documents are cut, and the UI says so. */
+export const MAX_ANALYSIS_TEXT_CHARS = 12_000;
+
 const project = z.object({ project: ProjectSchema });
 const componentId = z.string().min(1).max(100);
 
 export const TASKS = {
   "analyze-requirements": defineTask({
-    input: z.object({ text: z.string().trim().min(1).max(12_000), context: z.string().max(6_000).optional() }),
+    input: z.object({ text: z.string().trim().min(1).max(MAX_ANALYSIS_TEXT_CHARS), context: z.string().max(6_000).optional() }),
     output: RequirementsAnalysisSchema,
     run: (p, i) => p.analyzeRequirements(i),
   }),

@@ -26,6 +26,7 @@ export type QualityAttribute = z.infer<typeof S.QualityAttributeSchema>;
 export type Alternative = z.infer<typeof S.AlternativeSchema>;
 
 export type Snapshot = z.infer<typeof S.SnapshotSchema>;
+export type SourceDocument = z.infer<typeof S.SourceDocumentSchema>;
 export type Project = z.infer<typeof S.ProjectSchema>;
 
 export type RequirementsAnalysis = z.infer<typeof S.RequirementsAnalysisSchema>;

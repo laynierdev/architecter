@@ -145,6 +145,29 @@ const architectureFields = {
   flows: z.array(FlowScenarioSchema),
 };
 
+/** Limits shared by the schema and the document pipeline. */
+export const MAX_DOCUMENT_TEXT_CHARS = 60_000;
+export const MAX_DOCUMENTS_PER_PROJECT = 10;
+
+/**
+ * Metadata and extracted text of a requirements document the user attached. The original file
+ * bytes live in the document store (IndexedDB), not in the project, so projects stay small.
+ */
+export const SourceDocumentSchema = z.object({
+  id,
+  name: text(200),
+  kind: z.enum(["txt", "md", "pdf", "docx"]),
+  size: z.number().int().min(0),
+  /** SHA-256 of the original bytes (hex), to recognise the same file and verify the stored copy. */
+  sha256: z.string().regex(/^[0-9a-f]{64}$/, "Must be a SHA-256 hex digest"),
+  addedAt: isoDate,
+  /** Text extracted from the file, after normalisation. May be cut at the limit (see `truncated`). */
+  extractedText: z.string().max(MAX_DOCUMENT_TEXT_CHARS, `Must be at most ${MAX_DOCUMENT_TEXT_CHARS} characters`),
+  truncated: z.boolean(),
+  /** Whether the original file was saved in the document store. */
+  originalStored: z.boolean(),
+});
+
 export const SnapshotSchema = z.object({
   id,
   label: text(100),
@@ -179,6 +202,8 @@ export const ProjectSchema = z
     qualityAttributes: z.array(QualityAttributeSchema),
     alternatives: z.array(AlternativeSchema),
     snapshots: z.array(SnapshotSchema).max(30),
+    // Added after schema v1 shipped. The default keeps every older v1 backup importable.
+    documents: z.array(SourceDocumentSchema).max(MAX_DOCUMENTS_PER_PROJECT).default([]),
     createdAt: isoDate,
     updatedAt: isoDate,
   })

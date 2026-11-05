@@ -36,6 +36,7 @@ export function createProject(input: NewProjectInput): Project {
     qualityAttributes: [],
     alternatives: [],
     snapshots: [],
+    documents: [],
     createdAt: now,
     updatedAt: now,
   });
@@ -59,4 +60,18 @@ export function validateProject(project: unknown): Project {
     throw new DomainError(first ? (first.path.length ? `${first.path.join(" › ")}: ${first.message}` : first.message) : "Invalid project");
   }
   return result.data;
+}
+
+/**
+ * Creates an independent copy of a project: new id, fresh timestamps, a name that says it is a copy.
+ * Snapshots are kept (they are part of the history); source documents keep their extracted text but
+ * the caller must copy the original files separately.
+ */
+export function duplicateProject(project: Project, existingNames: readonly string[] = []): Project {
+  const now = nowIso();
+  const taken = new Set(existingNames.map((n) => n.trim().toLowerCase()));
+  const base = `Copy of ${project.name}`.slice(0, 74);
+  let name = base;
+  for (let n = 2; taken.has(name.toLowerCase()); n++) name = `${base} (${n})`;
+  return validateProject({ ...structuredClone(project), id: randomId("proj"), name, createdAt: now, updatedAt: now });
 }

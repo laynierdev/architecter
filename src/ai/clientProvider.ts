@@ -108,9 +108,10 @@ export class ApiAIProvider implements AIProvider {
     return data.data as Output<N>;
   }
 
-  // The server only needs what matters for the answer: snapshots can be large and are left out.
+  // The server only needs what matters for the answer. Snapshots and attached documents can be
+  // large and are never part of the prompt, so they are left out.
   private static slim(project: Project): Project {
-    return { ...project, snapshots: [] };
+    return { ...project, snapshots: [], documents: [] };
   }
 
   analyzeRequirements(input: { text: string; context?: string }) {

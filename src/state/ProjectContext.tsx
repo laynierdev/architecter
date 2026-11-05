@@ -6,7 +6,7 @@ import type { ApiAIProvider } from "@/ai/clientProvider";
 import { validateProject } from "@/domain/project";
 import type { Project } from "@/domain/types";
 import { canRedo, canUndo, createHistory, push, redo, undo, type History } from "./history";
-import { projectRepository } from "./store";
+import { getProjectRepository } from "./store";
 
 export type RunResult = { ok: true } | { ok: false; error: string };
 
@@ -22,6 +22,12 @@ interface ProjectContextValue {
   canUndo: boolean;
   canRedo: boolean;
   ai: ApiAIProvider;
+  /** Set when the latest change could not be written to browser storage (it is still held in memory). */
+  saveError: string | null;
+  /** Tries again to write the current project to storage. */
+  retrySave: () => void;
+  /** False when the browser blocks storage and nothing survives a reload. */
+  persistent: boolean;
   /** Which AI produced the latest answer (mock, fallback or Gemini). Updates after every AI call. */
   aiMode: AIMode;
 }
@@ -30,6 +36,7 @@ const Context = createContext<ProjectContextValue | null>(null);
 
 export function ProjectProvider({ initial, children }: { initial: Project; children: ReactNode }) {
   const [history, setHistory] = useState<History<Project>>(() => createHistory(initial));
+  const [saveError, setSaveError] = useState<string | null>(null);
   // The ref always holds the latest history so two quick operations never act on stale state.
   const latest = useRef(history);
   const ai = useMemo(() => createAIProvider(), []);
@@ -42,7 +49,21 @@ export function ProjectProvider({ initial, children }: { initial: Project; child
   const commit = useCallback((next: History<Project>) => {
     latest.current = next;
     setHistory(next);
-    projectRepository.save(next.present);
+    try {
+      getProjectRepository().save(next.present);
+      setSaveError(null);
+    } catch (e) {
+      setSaveError(e instanceof Error ? e.message : "The project could not be saved.");
+    }
+  }, []);
+
+  const retrySave = useCallback(() => {
+    try {
+      getProjectRepository().save(latest.current.present);
+      setSaveError(null);
+    } catch (e) {
+      setSaveError(e instanceof Error ? e.message : "The project could not be saved.");
+    }
   }, []);
 
   const run = useCallback<ProjectContextValue["run"]>(
@@ -68,8 +89,11 @@ export function ProjectProvider({ initial, children }: { initial: Project; child
       canRedo: canRedo(history),
       ai,
       aiMode,
+      saveError,
+      retrySave,
+      persistent: getProjectRepository().persistent,
     }),
-    [history, run, commit, ai, aiMode],
+    [history, run, commit, ai, aiMode, saveError, retrySave],
   );
 
   return <Context.Provider value={value}>{children}</Context.Provider>;

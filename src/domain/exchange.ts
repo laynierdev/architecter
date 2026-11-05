@@ -10,11 +10,18 @@ export function exportProjectJson(project: Project, exportedAt: string = new Dat
   return JSON.stringify({ format: EXPORT_FORMAT, schemaVersion: SCHEMA_VERSION, exportedAt, project }, null, 2);
 }
 
+export const BACKUP_FORMAT_NAME = "architecter-backup";
+
+/** Whole-workspace backup: every project in one file. */
+export function exportBackupJson(projects: readonly Project[], exportedAt: string = new Date().toISOString()): string {
+  return JSON.stringify({ format: BACKUP_FORMAT_NAME, schemaVersion: SCHEMA_VERSION, exportedAt, projects }, null, 2);
+}
+
 export type ParseResult = { ok: true; project: Project } | { ok: false; errors: string[] };
 
 /**
  * Parses and validates a JSON backup. Never throws: problems are reported as readable messages.
- * ID conflict resolution and storage are handled in Stage 4.
+ * Whole-workspace files, version migration and ID conflicts are handled by importer.ts.
  */
 export function parseProjectJson(source: string): ParseResult {
   let data: unknown;
