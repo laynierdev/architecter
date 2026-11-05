@@ -24,7 +24,7 @@ export function SettingsForm() {
   ];
 
   return (
-    <div className="d-grid gap-3">
+    <div className="ar-stack ar-stack-sm">
       <form
         onSubmit={(e) => {
           e.preventDefault();

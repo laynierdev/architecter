@@ -35,7 +35,8 @@ export function AdvisorPanel({ focusComponentId }: { focusComponentId?: string }
 
   return (
     <div className="d-flex flex-column h-100">
-      <AiNotice what="answer" />
+      {/* Only once there is an answer to talk about: before that nothing has been generated. */}
+      {messages.some((m) => m.role === "advisor") && <AiNotice what="answer" />}
 
       <div className="flex-grow-1" aria-live="polite">
         {messages.length === 0 && (

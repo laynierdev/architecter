@@ -21,6 +21,8 @@ export function Modal({ title, onClose, children, size = "md" }: Props) {
     if (!dialog) return;
     const previous = document.activeElement as HTMLElement | null;
     if (!dialog.open) dialog.showModal();
+    // Forms start on their first text field; dialogs without one (confirmations) keep the default focus.
+    dialog.querySelector<HTMLElement>("input:not([type=checkbox]):not([type=radio]):not([type=file]):not([type=range]), textarea")?.focus();
     return () => {
       dialog.close();
       previous?.focus?.();

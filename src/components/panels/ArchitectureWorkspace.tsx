@@ -74,6 +74,7 @@ export function ArchitectureWorkspace() {
 
   return (
     <div className="workspace">
+      <h1 className="visually-hidden">Architecture workspace</h1>
       <div className="workspace-toolbar" role="toolbar" aria-label="Architecture controls">
         <div className="btn-group btn-group-sm" role="group" aria-label="History">
           <button type="button" className="btn btn-outline-secondary" onClick={undo} disabled={!canUndo} aria-label="Undo">
@@ -101,7 +102,7 @@ export function ArchitectureWorkspace() {
 
         <div className="d-flex align-items-center gap-2">
           <label htmlFor="flow-select" className="fs-xs text-muted-ar mb-0">Flow</label>
-          <select id="flow-select" className="form-select form-select-sm" style={{ width: "auto" }} value={flowId} disabled={simulating || project.flows.length === 0} onChange={(e) => setFlowId(e.target.value)}>
+          <select id="flow-select" className="form-select form-select-sm" style={{ width: "auto", maxWidth: 150 }} value={flowId} disabled={simulating || project.flows.length === 0} onChange={(e) => setFlowId(e.target.value)}>
             {project.flows.length === 0 && <option>No flows</option>}
             {project.flows.map((f) => (
               <option key={f.id} value={f.id}>{f.name}</option>
@@ -109,11 +110,11 @@ export function ArchitectureWorkspace() {
           </select>
         </div>
         {simulating ? (
-          <button type="button" className="btn btn-sm btn-danger" onClick={stop}>
+          <button type="button" className="btn btn-sm btn-danger sim-btn" onClick={stop}>
             <i className="bi bi-stop-fill me-1" aria-hidden="true" />Stop
           </button>
         ) : (
-          <button type="button" className="btn btn-sm btn-primary" disabled={!flow || flow.steps.length === 0} onClick={() => flow && play(flow)}>
+          <button type="button" className="btn btn-sm btn-primary sim-btn" disabled={!flow || flow.steps.length === 0} onClick={() => flow && play(flow)}>
             <i className="bi bi-play-fill me-1" aria-hidden="true" />Simulate flow
           </button>
         )}
@@ -141,13 +142,7 @@ export function ArchitectureWorkspace() {
           </div>
         ) : (
           <>
-            <div className="legend" aria-label="Diagram legend">
-              {(Object.keys(KIND_META) as (keyof typeof KIND_META)[]).map((k) => (
-                <span key={k}><span className="dot" style={{ background: KIND_META[k].color }} />{KIND_META[k].label}</span>
-              ))}
-              <span className="mt-1 text-muted-ar">Dashed line: asynchronous</span>
-              <span className="text-muted-ar">Dashed border: assumption</span>
-            </div>
+            <DiagramLegend />
             <DiagramCanvas
               key={structureKey}
               components={project.components}
@@ -190,6 +185,30 @@ export function ArchitectureWorkspace() {
       {modal?.type === "delete-relationship" && <DeleteRelationshipModal relationship={modal.relationship} onClose={closeModal} onDeleted={() => setSelection(null)} />}
       {modal?.type === "snapshots" && <SnapshotsModal onClose={closeModal} />}
       {modal?.type === "proposal" && <ProposalReviewModal proposal={modal.proposal} onClose={closeModal} onApplied={() => setSelection(null)} />}
+    </div>
+  );
+}
+
+/** Collapsed by default so it never hides diagram nodes; it opens on demand. */
+function DiagramLegend() {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="legend" aria-label="Diagram legend">
+      <button type="button" className="legend-toggle" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
+        <i className={`bi ${open ? "bi-chevron-down" : "bi-chevron-right"}`} aria-hidden="true" /> Legend
+      </button>
+      {open && (
+        <div className="legend-body">
+          {(Object.keys(KIND_META) as (keyof typeof KIND_META)[]).map((k) => (
+            <span key={k}>
+              <span className="dot" style={{ background: KIND_META[k].color }} />
+              {KIND_META[k].label}
+            </span>
+          ))}
+          <span className="mt-1 text-muted-ar">Dashed line: asynchronous</span>
+          <span className="text-muted-ar">Dashed border: assumption</span>
+        </div>
+      )}
     </div>
   );
 }

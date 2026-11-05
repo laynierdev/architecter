@@ -220,7 +220,7 @@ export function RequirementsBoard() {
   };
 
   return (
-    <div className="d-grid gap-4">
+    <div className="ar-stack">
       <section className="ar-card" aria-label="Product description">
         <div className="ar-card-header">
           <h2 className="h6 mb-0">Product description</h2>

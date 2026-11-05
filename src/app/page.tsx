@@ -4,7 +4,7 @@ import { ProjectList } from "./ProjectList";
 
 export default function DashboardPage() {
   return (
-    <main id="main-content" className="ar-main container-xl">
+    <main id="main-content" tabIndex={-1} className="ar-main container-xl">
       <PageHeader
         title="Projects"
         description="Design systems from requirements, explore trade-offs and keep decisions documented."

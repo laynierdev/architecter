@@ -14,7 +14,7 @@ export function ProjectShell({ id, children }: { id: string; children: ReactNode
 
   if (!hydrated) {
     return (
-      <main id="main-content" className="ar-main" aria-busy="true">
+      <main id="main-content" tabIndex={-1} className="ar-main" aria-busy="true">
         <p className="text-muted-ar">Loading project…</p>
       </main>
     );
@@ -22,7 +22,7 @@ export function ProjectShell({ id, children }: { id: string; children: ReactNode
 
   if (!project) {
     return (
-      <main id="main-content" className="ar-main text-center py-5">
+      <main id="main-content" tabIndex={-1} className="ar-main text-center py-5">
         <h1 className="h3">Project not found</h1>
         <p className="text-muted-ar">
           This project does not exist in this browser. It may have been deleted, or it was created in another browser or profile. You can restore it from a backup file on the dashboard.
@@ -38,7 +38,7 @@ export function ProjectShell({ id, children }: { id: string; children: ReactNode
     <ProjectProvider key={id} initial={project}>
       <div className="ar-shell">
         <ProjectNavConnected />
-        <main id="main-content" className="min-w-0">
+        <main id="main-content" tabIndex={-1} className="min-w-0">
           <StorageBanners />
           {children}
         </main>

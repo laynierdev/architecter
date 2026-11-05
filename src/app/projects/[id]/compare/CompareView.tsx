@@ -206,7 +206,7 @@ export function CompareView() {
   const ranking = allZero ? [] : rankAlternatives(alternatives, weights);
 
   return (
-    <div className="d-grid gap-4">
+    <div className="ar-stack">
       <div className="d-flex justify-content-end">{addButton}</div>
       {suggestionError}
 
