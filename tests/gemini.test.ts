@@ -204,6 +204,16 @@ describe("prompts and schemas", () => {
     expect(prompts.generateArchitecture(demoProject)).toContain("<project>");
   });
 
+  it("removes array size limits from the model schema (the API rejects them) while Zod still enforces them", () => {
+    const sent = JSON.stringify(toJsonSchema(LlmArchitectureSchema));
+    expect(sent).not.toContain("minItems");
+    expect(sent).not.toContain("maxItems");
+    // Other constraints are kept, and a field called like a keyword is never dropped.
+    expect(sent).toContain("maxLength");
+    expect(sent).toContain('"description"');
+    expect(LlmArchitectureSchema.safeParse({ title: "t", summary: "", architectureStyle: "s", styleJustification: "", components: [], connections: [] }).success).toBe(false);
+  });
+
   it("produces JSON schemas for the model", () => {
     const schema = toJsonSchema(LlmArchitectureSchema);
     expect(schema).toMatchObject({ type: "object" });

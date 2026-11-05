@@ -75,7 +75,8 @@ ${text}
 - Choose the architecture style and justify it with the stated requirements; mention when a simpler style would also work.
 - Mark a component as "assumption" when it depends on information the user did not provide.
 - Include communication protocols, data stores, authentication, and external integrations only when justified.
-- For each component fill rationale, failureMode, and scaling concisely.`,
+- For each component fill rationale, failureMode, and scaling concisely.
+- Limits: return between 1 and 20 components and at most 40 connections; at most 8 responsibilities per component.`,
     );
   },
 

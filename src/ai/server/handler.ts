@@ -6,6 +6,7 @@ import type { AIService } from "./service";
 
 const STATUS_BY_CODE: Record<AIErrorCode, number> = {
   rate_limited: 429,
+  quota_exceeded: 429,
   timeout: 504,
   unavailable: 503,
   not_configured: 503,
