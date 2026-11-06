@@ -1,15 +1,58 @@
+# Dependencies
 node_modules/
+
+# Build output and caches
 .next/
 out/
 build/
+dist/
+coverage/
+.turbo/
 *.tsbuildinfo
 next-env.d.ts
+
+# Environment files: never commit secrets. Only the example file is tracked.
 .env
 .env.*
 !.env.example
-.vercel/
-npm-debug.log*
-.DS_Store
-.claude/settings.local.json
 
-.vercel
+# Hosting tool state (created by `vercel link`)
+.vercel/
+
+# Editors and IDEs
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+*~
+
+# AI assistant and tooling local configuration
+.claude/
+.cursor/
+.aider*
+.windsurf/
+
+# Operating system files
+.DS_Store
+Thumbs.db
+desktop.ini
+ehthumbs.db
+
+# Logs and temporary files
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.tmp
+*.temp
+.cache/
+
+# Certificates and keys
+*.pem
+*.key
