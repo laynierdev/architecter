@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+message: "If you use Architecter, you must credit its author. Please cite it as below."
+title: "Architecter: from requirements to architecture"
+type: software
+abstract: "An AI-assisted system design studio that turns requirements into structured, visual and defensible software architectures, with animated flow simulation, architecture decision records, risk analysis and comparison of alternatives."
+authors:
+  - alias: "laynierdev"
+repository-code: "https://github.com/laynierdev/architecter"
+url: "https://architecter-rho.vercel.app"
+license-url: "https://github.com/laynierdev/architecter/blob/main/LICENSE"
+keywords:
+  - software architecture
+  - system design
+  - architecture decision records
+  - ai-assisted design
+date-released: "2026-11-05"
+version: "1.0.0"

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Credits } from "@/components/ui/Credits";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { ProjectList } from "./ProjectList";
 
@@ -36,6 +37,10 @@ export default function DashboardPage() {
           ))}
         </ol>
       </section>
+
+      <footer className="mt-5 pt-3 border-top">
+        <Credits className="mb-0" />
+      </footer>
     </main>
   );
 }

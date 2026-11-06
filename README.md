@@ -6,12 +6,31 @@ Architecter is an AI-assisted **system design studio**. You describe a product, 
 
 It is a practical engineering tool, not a chatbot and not a diagram generator. The project is a structured document (requirements, components, relationships, decisions, risks, alternatives); the diagram, the exports and the AI features are views and operations on that document.
 
-![Architecture workspace with a flow simulation running](docs/screenshots/architecture-simulation.jpg)
+<p align="center">
+  <img src="docs/flow-animation.gif" alt="The Place an order flow animated step by step: a pulse of light travels along every connection, with a caption for each step" width="100%">
+</p>
+
+<p align="center"><em>The <strong>Place an order</strong> flow, simulated at 0.5× speed. Each pulse is one real connection of the architecture.</em></p>
+
+**Live demo:** <https://architecter-rho.vercel.app> (runs with the built-in mock AI, so every feature can be tried without an account or an API key).
+
+## Why the flow animation matters
+
+Most diagram tools show you boxes and arrows and leave you to imagine how a request actually moves through the system. Architecter **plays the flow**:
+
+- Pick a scenario (*Place an order*, *Browse a menu*, *Live delivery tracking*) and press **Simulate flow**.
+- A pulse of light travels along each connection, in order. Synchronous calls are orange and asynchronous (event-based) ones are violet, so you can *see* where the system waits and where it does not.
+- The active components glow, the rest fade back, and a caption explains each step in plain language ("Order Service asks the Payment Service to authorize the payment").
+- Steps that happen in parallel (for example two services consuming the same event) light up together.
+- Change the speed (0.5×, 1×, 2×) or stop at any moment. It respects the "reduce motion" setting of your system.
+
+It turns a static diagram into something you can walk a teammate, a client or a student through, which is exactly where most architecture misunderstandings are caught.
 
 ## Contents
 
+- [Quick tour](#quick-tour)
+- [Capabilities at a glance](#capabilities-at-a-glance)
 - [Features](#features)
-- [Screenshots](#screenshots)
 - [How it works](#how-it-works)
 - [Technology stack](#technology-stack)
 - [Getting started](#getting-started)
@@ -23,7 +42,84 @@ It is a practical engineering tool, not a chatbot and not a diagram generator. T
 - [Accessibility](#accessibility)
 - [Deployment](#deployment)
 - [Known limitations](#known-limitations)
-- [Credits and license](#credits-and-license)
+- [License and attribution](#license-and-attribution)
+
+## Quick tour
+
+A five-minute walk through the main workflow. Everything works in the [live demo](https://architecter-rho.vercel.app) and in a local install; the AI steps use the built-in mock unless you configure Gemini (see [AI configuration](#ai-configuration)).
+
+### 1. Describe what you are building
+
+Open **New project**, give it a name and describe the product in your own words. Fill in the targets you actually know (users, availability, latency, budget) and **leave blank what you do not know**: Architecter never fills those in for you.
+
+![Creating a project](docs/screenshots/new-project.jpg)
+
+### 2. Analyze and review the requirements
+
+In **Requirements**, press **Analyze requirements** (or **Upload document** for a `.txt`, `.md`, `.pdf` or `.docx` file). You get a review list: functional and non-functional requirements, targets found in your text, assumptions and the questions that are still open. **Nothing is added until you accept it**, and every item keeps its origin: *provided by you*, *assumption*, *recommendation* or *open question*.
+
+![Reviewing extracted requirements before accepting them](docs/screenshots/analysis-review.jpg)
+
+Accepted items land in the requirements workspace, each with its origin and priority:
+
+![The requirements workspace](docs/screenshots/requirements.jpg)
+
+### 3. Ask for an architecture, and approve it change by change
+
+In **Architecture**, press **Suggest architecture**. The result is a *proposal*: a list of changes with a short reason and an origin tag each. Untick what you do not want, then approve. A snapshot of the previous state is saved first, and undo is always available.
+
+![Reviewing an architecture proposal](docs/screenshots/proposal-review.jpg)
+
+### 4. Watch the flows run
+
+Press **Simulate flow**. This is where the diagram comes alive: a pulse of light follows each connection of the chosen scenario while a caption explains the step (see the animation at the top). Use the speed buttons to slow it down while presenting.
+
+![A flow simulation in progress](docs/screenshots/architecture-simulation.jpg)
+
+### 5. Inspect, explain and question every part
+
+Click any component or connection to see its responsibilities, the reason it is there, how it fails and how it scales. **Explain** gives a plain-language walkthrough, **Analyze impact** shows what depends on it, and **Confirm** turns a suggestion into your own decision.
+
+![Inspecting a component](docs/screenshots/component-details.jpg)
+
+The **Advisor** tab answers questions about *your* architecture ("What happens if the API Gateway fails?", "How would it handle ten times the traffic?"), shows what its answer is based on, and says clearly which AI produced it.
+
+![The architecture advisor](docs/screenshots/advisor.jpg)
+
+### 6. Compare alternatives
+
+In **Compare**, set how much each criterion matters to you and see a weighted ranking of the options (for example modular monolith vs. services), with advantages, disadvantages and cost *estimates* that state their assumptions.
+
+![Comparing alternatives](docs/screenshots/compare.jpg)
+
+### 7. Record decisions and risks
+
+**Decisions (ADRs)** keeps Architecture Decision Records with a real lifecycle (proposed, accepted, superseded, deprecated). **Risks & quality** scores risks by likelihood and impact and tracks quality attributes.
+
+![Architecture decision records](docs/screenshots/decisions.jpg)
+
+![Risks and quality attributes](docs/screenshots/risks.jpg)
+
+### 8. Keep and share your work
+
+Projects are saved in your browser. From **Settings** (or the dashboard) export a JSON backup, Markdown documentation, the ADRs or a Mermaid diagram, and restore anything later with **Import backup**.
+
+## Capabilities at a glance
+
+| Capability | Where | What you get |
+| --- | --- | --- |
+| Requirements with provenance | Requirements | Items tagged as yours, assumed, recommended or unknown; assumptions to confirm; open questions |
+| Document import | Requirements | `.txt`, `.md`, `.pdf`, `.docx` read in your browser; originals kept untouched |
+| AI analysis, review first | Requirements | Extracted requirements that you accept item by item |
+| Architecture proposals | Architecture | Change-by-change proposals, snapshot before applying, undo/redo |
+| **Animated flow simulation** | Architecture | A pulse travels along every connection of a scenario, with step captions and speed control |
+| Interactive diagram | Architecture | Zoom, pan, minimap, component and connection inspector, structural checks |
+| Advisor, explanations, impact | Architecture | Answers grounded in your project, with references and the provider named |
+| Alternatives | Compare | Weighted ranking, side-by-side criteria, cost estimates with assumptions |
+| ADRs | Decisions | Records with lifecycle, supersede links, Markdown export |
+| Risks and quality | Risks & quality | Likelihood × impact scoring, quality attribute scores |
+| Backups and restore | Dashboard, Settings | JSON, Markdown, Mermaid, workspace backup, validated import with conflict handling |
+| Safe by default | Everywhere | Key kept on the server, usage limits, mock fallback that is always labelled |
 
 ## Features
 
@@ -59,16 +155,6 @@ It is a practical engineering tool, not a chatbot and not a diagram generator. T
 - Multiple projects saved in your browser, with duplicate, delete, export and restore.
 - Workspace backups, import with validation, version checks and conflict resolution.
 - Exports generated from the real project data: JSON, Markdown documentation, ADRs and Mermaid diagrams.
-
-## Screenshots
-
-| Requirements, with the origin of every item | Compare alternatives with weighted criteria |
-| --- | --- |
-| ![Requirements](docs/screenshots/requirements.jpg) | ![Compare](docs/screenshots/compare.jpg) |
-
-| Architecture decision records | Risks and quality attributes |
-| --- | --- |
-| ![Decisions](docs/screenshots/decisions.jpg) | ![Risks](docs/screenshots/risks.jpg) |
 
 ## How it works
 
@@ -263,8 +349,24 @@ Things to know:
 - Mobile layouts were checked at 360 px in a desktop browser, not on physical devices, and a screen reader has not been used.
 - The Gemini model name and the response schema support can change on Google's side.
 
-## Credits and license
+## License and attribution
 
-Diagrams are rendered with [React Flow](https://reactflow.dev) (xyflow), whose attribution is left visible in the diagram corner, animated with [Motion](https://motion.dev), and laid out with [dagre](https://github.com/dagrejs/dagre). Icons are [Bootstrap Icons](https://icons.getbootstrap.com).
+Architecter is released under the [Architecter License](LICENSE): the permissive **MIT License plus an attribution requirement**. You are free to use, modify, distribute and even sell it, **as long as you credit the original author**:
 
-Released under the [MIT License](LICENSE).
+> **Based on Architecter by laynierdev**, <https://github.com/laynierdev/architecter>
+
+How the credit must be given depends on how you use it:
+
+| If you... | You must... |
+| --- | --- |
+| Fork, copy or redistribute the code, or build a derivative work | Keep the `LICENSE` file and copyright notice, and include the credit above in your README or main documentation |
+| Run it (or something derived from it) as an app or service that other people can access, free or paid | Show the credit somewhere your users can see it, such as an *About*, *Credits* or footer area (this app does it in the dashboard footer and in Settings) |
+| Write, publish, teach or research with it | Cite it. GitHub's **Cite this repository** button uses [`CITATION.cff`](CITATION.cff) |
+
+The credit may not be removed or hidden, and modified versions must be marked as modified.
+
+> **Note.** Because it adds a condition to MIT, this license is *source-available with attribution* rather than a license approved by the [Open Source Initiative](https://opensource.org/licenses). It is plain-language and was not reviewed by a lawyer: if the exact legal wording matters for you, have it reviewed.
+
+### Third-party credits
+
+Diagrams are rendered with [React Flow](https://reactflow.dev) (xyflow), whose attribution is left visible in the diagram corner, animated with [Motion](https://motion.dev), and laid out with [dagre](https://github.com/dagrejs/dagre). Icons are [Bootstrap Icons](https://icons.getbootstrap.com). Each dependency keeps its own license.

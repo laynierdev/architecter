@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { adrsToMarkdown, exportProjectJson, toMarkdown, toMermaid } from "@/domain/exchange";
 import { updateProjectInfo } from "@/domain/project";
+import { Credits } from "@/components/ui/Credits";
 import { Field, FormError } from "@/components/ui/Fields";
 import { downloadText, slug } from "@/components/ui/download";
 import { useProject } from "@/state/ProjectContext";
@@ -68,6 +69,11 @@ export function SettingsForm() {
           {aiMode.fallback ? ` The last request used the mock because: ${aiMode.reason ?? "the provider was unavailable"}.` : ""}
           {aiMode.provider === "mock" && !aiMode.fallback ? " Without a key, answers come from deterministic rules instead of a language model." : ""}
         </p>
+      </section>
+
+      <section className="ar-card ar-card-body" aria-labelledby="about-h">
+        <h2 id="about-h" className="h6">About</h2>
+        <Credits className="mb-0" />
       </section>
     </div>
   );

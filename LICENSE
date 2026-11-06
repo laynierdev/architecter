@@ -1,6 +1,7 @@
-MIT License
+Architecter License
+MIT License with Attribution Requirement
 
-Copyright (c) 2026 Architecter contributors
+Copyright (c) 2026 laynierdev (https://github.com/laynierdev)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -9,8 +10,30 @@ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 copies of the Software, and to permit persons to whom the Software is
 furnished to do so, subject to the following conditions:
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+1. ATTRIBUTION. Any use of the Software, in whole or in substantial part, must
+   give clear and visible credit to the original author. The credit must read
+   "Based on Architecter by laynierdev" and link to
+   https://github.com/laynierdev/architecter (or its successor location), and
+   must be given in the way that fits the use:
+
+   a. Redistribution of source code or binaries, including forks, templates
+      and derivative works: keep this LICENSE file and the copyright notice,
+      and include the credit in the README or main documentation.
+
+   b. Running the Software, or software derived from it, as an application or
+      service that other people can access (free or paid, public or internal
+      to an organisation): show the credit in a place visible to its users,
+      such as an "About", "Credits" or footer area.
+
+   c. Written, academic, educational or published work that uses, evaluates or
+      describes the Software: cite it (see CITATION.cff).
+
+2. The credit must not be removed, hidden, obscured or presented in a way that
+   suggests the original Software was written by someone else. Modified
+   versions must be clearly marked as modified.
+
+3. The above copyright notice and this permission notice shall be included in
+   all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,

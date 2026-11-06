@@ -3,7 +3,13 @@
   "version": "1.0.0",
   "description": "AI-assisted system design studio: from requirements to architecture.",
   "private": true,
-  "license": "MIT",
+  "license": "SEE LICENSE IN LICENSE",
+  "author": "laynierdev (https://github.com/laynierdev)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/laynierdev/architecter.git"
+  },
+  "homepage": "https://architecter-rho.vercel.app",
   "engines": {
     "node": ">=20.9.0"
   },
