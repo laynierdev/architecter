@@ -31,11 +31,11 @@
     "dagre": "^0.8.5",
     "jszip": "^3.10.2",
     "mammoth": "^1.13.0",
-    "motion": "^14.9.1",
+    "motion": "^14.11.1",
     "next": "^16.4.5",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
-    "sass": "^1.107.1",
+    "sass": "^1.108.1",
     "unpdf": "^2.1.0",
     "zod": "^4.6.7"
   },
@@ -46,7 +46,7 @@
     "@types/react-dom": "^19.3.0",
     "eslint": "^10.14.0",
     "eslint-config-next": "^16.4.5",
-    "fake-indexeddb": "^6.2.7",
+    "fake-indexeddb": "^6.2.8",
     "typescript": "^6.0.3",
     "vitest": "^5.1.0"
   }
